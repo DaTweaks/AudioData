@@ -1,5 +1,4 @@
-﻿//	Copyright (c) 2024 David Hornemark
-//        http://the.darktable.com
+﻿//	Copyright (c) 2024 David Hornemark 
 //
 //	This software is provided 'as-is', without any express or implied warranty. In
 //	no event will the authors be held liable for any damages arising from the use
@@ -195,7 +194,6 @@ namespace AudioData
                 var randomPosition = rng.Next(encoded.Length);
 
                 encoded[randomPosition] = !encoded[randomPosition];
-                Console.WriteLine("Created error at: " + randomPosition % 12);
             }
             return encoded;
         }

@@ -1,5 +1,4 @@
 ﻿//	Copyright (c) 2024 David Hornemark
-//        http://the.darktable.com
 //
 //	This software is provided 'as-is', without any express or implied warranty. In
 //	no event will the authors be held liable for any damages arising from the use
@@ -52,7 +51,7 @@ class Program
 
         var filespace = SaveAudioToFile(EncodeDataToAudio(handshake.Concat(binary).ToArray()), $"output.wav");
 
-        Console.WriteLine("Sending data. Send time is: " + GetWavFileDuration("output.wav").Seconds + " Seconds");
+        Console.WriteLine($"Sending data. Send time is:  {GetWavFileDuration("output.wav").Seconds}.{GetWavFileDuration("output.wav").Milliseconds} Seconds");
 
         PlayAudio(filespace);
 

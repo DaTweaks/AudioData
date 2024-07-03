@@ -20,3 +20,4 @@ C:\Users\david\source\repos\AudioData\AudioData\obj\Debug\net8.0\refint\AudioDat
 C:\Users\david\source\repos\AudioData\AudioData\obj\Debug\net8.0\AudioData.pdb
 C:\Users\david\source\repos\AudioData\AudioData\obj\Debug\net8.0\AudioData.genruntimeconfig.cache
 C:\Users\david\source\repos\AudioData\AudioData\obj\Debug\net8.0\ref\AudioData.dll
+C:\Users\david\source\repos\AudioData\AudioData\obj\Debug\net8.0\AudioData.sourcelink.json
