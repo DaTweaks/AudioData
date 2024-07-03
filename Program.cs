@@ -44,8 +44,6 @@ class Program
 
     static void Main(string[] args)
     {
-        float completed = 0;
-
         string data = "TEST";
 
         var binary = StringToBinary(data);
@@ -104,7 +102,7 @@ class Program
 
         if (binary.Length % 8 != 0)
         {
-            throw new ArgumentException("The amount of bits. is not in 8 bit pairs. Make sure you aren't sending in a hamming encoded bit.");
+            throw new ArgumentException("The amount of bits is not in 8 bit pairs. Make sure you aren't sending in a hamming encoded bit.");
         }
 
         for (int i = 0; i < binary.Length; i += 8)
@@ -122,8 +120,6 @@ class Program
 
         return sb.ToString();
     }
-
-    /// <returns>the file name.</returns>
 
     #region Audio
 
@@ -171,7 +167,9 @@ class Program
 
     static bool[] DecodeAudioToData(string fileName)
     {
+        // Get AudioData from the file;
         float[] audioData = LoadAudioFromFile(fileName);
+        // Calculate where the bits will be placed.
         int samplesPerBit = (int)(SampleRate * BitDuration);
 
         List<bool> decodedStringData = new List<bool>();
@@ -249,6 +247,7 @@ class Program
         return Math.Sqrt(q1 * q1 + q2 * q2 - q1 * q2 * coeff);
     }
 
+    /// <returns>the file name.</returns>
     static string SaveAudioToFile(float[] audioData, string fileName)
     {
         using (var writer = new WaveFileWriter(fileName, new WaveFormat(SampleRate, 1)))
