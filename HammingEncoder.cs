@@ -20,8 +20,10 @@
 //
 //  =============================================================================
 
+using NAudio.CoreAudioApi;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,15 +33,15 @@ namespace AudioData
 {
     internal class HammingEncoder
     {
-        public const bool t = true;
-        public const bool f = false;
-        public const int startWith = 0;
-        public static int length = 12;
-
-        /// <param name="code">Array of 8 bit pairsArray of Hamming code bits.</param>
-        /// <returns>Array of Encoded Hamming code bits in sizes of 12.</returns>
-        public static bool[] Encode(bool[] code)
+        /// <returns>Array of Encoded Hamming code bits</returns>
+        /// <param name="byteSize">The prededermined size of the bits. Sizes of 4 and 8 Are supported.</param>
+        public static bool[] Encode(bool[] code, int byteSize)
         {
+            if (byteSize != 4 && byteSize != 8)
+                throw new Exception("byteSize must be 8 or 4.");
+
+            var length = Helpers.GetLength(byteSize);
+
             List<bool[]> result = new List<bool[]>();
 
             for (int i = 0; i < code.Length; i += 8)
@@ -70,10 +72,16 @@ namespace AudioData
             return combinedArray;
         }
 
-        /// <param name="code">Array of Encoded Hamming code bits in sizes of 12.</param>
-        /// <returns>Array of 8 bit pairs</returns>
-        public static bool[] Decode(bool[] code)
+        /// <param name="code">Array of Encoded Hamming code bits.</param>
+        /// <param name="byteSize">The prededermined size of the bits. (AKA the size of what you expect to come out)</param>
+        /// <returns>Array of pairs in bytesize</returns>
+        public static bool[] Decode(bool[] code, int byteSize)
         {
+            if (byteSize != 4 && byteSize != 8)
+                throw new Exception("byteSize must be 8 or 4.");
+
+            int length = Helpers.GetLength(byteSize);
+
             List<bool[]> result = new List<bool[]>();
 
             for (int i = 0; i < code.Length; i += length)
@@ -104,36 +112,33 @@ namespace AudioData
             return combinedArray;
         }
 
-        /// <param name="code">8 bits inside of an Array (MUST BE 8 BITS)</param>
-        /// <returns>Encoded bits of sizes 12</returns>
         private static bool[] HEncode(bool[] code)
         {
-            var encoded = new bool[length];
-            int[] parityPositions = { 0, 1, 3, 7 }; // 1-based positions for parity bits
+            var parityPositions =  Helpers.GetParityPositions(code);
 
-            int i = 0, j = 0;
-            for (int k = 0; k < length; k++)
-            {
-                if (Array.Exists(parityPositions, pos => pos == k))
+            int length = code.Length + parityPositions.Length;
+
+            var encoded = new bool[length];
+
+            // Insert data into the hamming code. 
+            for (int i = 0, j = 0; i < length; i++)
+            {;
+                if (parityPositions.Contains(i))
                 {
-                    // Parity bit positions will be calculated later
+                    // Parity bits added later.
                     continue;
                 }
-                encoded[k] = code[j];
+                encoded[i] = code[j];
                 j++;
             }
 
             // Calculate parity bits
-            encoded[0] = Helpers.doXoringForPosition(encoded, length, 1);
-            encoded[1] = Helpers.doXoringForPosition(encoded, length, 2);
-            encoded[3] = Helpers.doXoringForPosition(encoded, length, 4);
-            encoded[7] = Helpers.doXoringForPosition(encoded, length, 8);
+            foreach (var parity in parityPositions)
+                encoded[parity] = Helpers.doXoringForPosition(encoded, length, parity);
 
             return encoded;
         }
 
-        /// <param name="code">Encoded bits of sizes 12</param>
-        /// <returns>8 bits inside of an Array</returns>
         private static bool[] HDecode(bool[] encoded)
         {
             int faultyBitPosition = ErrorSyndrome(encoded);
@@ -142,41 +147,41 @@ namespace AudioData
                 encoded[faultyBitPosition] = !encoded[faultyBitPosition];
             }
 
-            var decoded = new bool[8]; // 8 data bits
+            var decoded = new List<bool>();
 
-            int i = 0, j = 0;
-            int[] parityPositions = { 0, 1, 3, 7 };
-
-            for (int k = 0; k < length; k++)
+            for (int i = 0, j = 0; i < encoded.Length; i++)
             {
-                if (Array.Exists(parityPositions, pos => pos == k))
+                if (Helpers.PowerOf2(i + 1))
                 {
                     continue;
                 }
-                decoded[j] = encoded[k];
+                decoded.Add(encoded[i]);
                 j++;
             }
 
-            return decoded;
+            return decoded.ToArray();
         }
 
-        /// <param name="encoded">Encoded bits of sizes 12</param>
+        /// <param name="encoded">Encoded bits.</param>
         /// <returns>The position in the array where the faulty bit is. -1 is that there is none.</returns>
         public static int ErrorSyndrome(bool[] encoded)
         {
-            int syndrome =
-                (Convert.ToInt32(Helpers.doXoringForPosition(encoded, length, 1) ^ encoded[0])) +
-                (Convert.ToInt32(Helpers.doXoringForPosition(encoded, length, 2) ^ encoded[1]) << 1) +
-                (Convert.ToInt32(Helpers.doXoringForPosition(encoded, length, 4) ^ encoded[3]) << 2) +
-                (Convert.ToInt32(Helpers.doXoringForPosition(encoded, length, 8) ^ encoded[7]) << 3);
-
+            int syndrome = 0;
+            for (int i = 0, j = 0; encoded.Length > i; i++)
+            {
+                if (Helpers.PowerOf2(i+1))
+                {
+                    syndrome += (Convert.ToInt32(Helpers.doXoringForPosition(encoded, encoded.Length, i) ^ encoded[i]) << j);
+                    j++;
+                }
+            }
             return syndrome - 1;
         }
 
         /// <summary>
         /// If you want to determine the position of the bit use the ErrorSyndrome Function.
         /// </summary>
-        /// <param name="encoded">Encoded bits of sizes 12</param>
+        /// <param name="encoded">Encoded bits./param>
         /// <returns>If it has a flipped bit.</returns>
         public static bool HasError(bool[] encoded)
         {
@@ -185,8 +190,7 @@ namespace AudioData
 
         /// <param name="encoded">the array to be flipped.</param>
         /// <param name="amount">amount of bits that will be flipped.</param>
-        /// <returns>the same array </returns>
-        public static bool[] MixinRandomError(bool[] encoded, int amount)
+        public static void MixinRandomError(bool[] encoded, int amount)
         {
             var rng = new Random();
             for (int i = 0; i < amount; i++)
@@ -195,12 +199,33 @@ namespace AudioData
 
                 encoded[randomPosition] = !encoded[randomPosition];
             }
-            return encoded;
         }
     }
 
     public class Helpers
     {
+        public static int GetLength(int byteSize)
+        {
+            int parityAmount = 0;
+            for (int i = 0; byteSize > i; i++)
+                if (Helpers.PowerOf2(i + 1)) // Calculate all the positions for parity.
+                    parityAmount++;
+            return parityAmount+byteSize;
+        }
+
+        public static int[] GetParityPositions(bool[] code)
+        {
+            var parityPositions = new List<int>();
+            for (int i = 0; code.Length > i; i++)
+            {
+                if (Helpers.PowerOf2(i + 1)) // Calculate all the positions for parity.
+                {
+                    parityPositions.Add(i);
+                }
+            }
+            return parityPositions.ToArray();
+        }
+
         public static System.String boolArrayToPrettyString(bool[] arr)
         {
             return System.String.Join("", arr.Select(x => Convert.ToInt32(x)));
@@ -211,9 +236,9 @@ namespace AudioData
             return s.ToArray().Select(x => ((Convert.ToInt32(x) - 48) > 0)).ToArray();
         }
 
-        public static bool notPowerOf2(int x)
+        public static bool PowerOf2(int x)
         {
-            return !(x == 1 || x == 2 || x == 4 || x == 8);
+            return (x > 0) && ((x & (x - 1)) == 0);
         }
 
         public static int[] getPositionsForXoring(int length, int currentHammingPosition)
@@ -221,9 +246,8 @@ namespace AudioData
             var positions = new List<int>();
             for (int i = 1; i <= length; i++)
             {
-                if ((i & currentHammingPosition) > 0 && notPowerOf2(i))
+                if ((i & (currentHammingPosition+1)) > 0 && !PowerOf2(i))
                     positions.Add(i);
-
             }
             return positions.ToArray();
         }

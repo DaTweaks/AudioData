@@ -41,13 +41,26 @@ class Program
     const double Frequency1 = 2000; // Frequency for binary 1
     public static bool[] handshake = { true, false, true, false, false, true, false, true };
 
+    //static void Main(string[] args) // EXAMPLE USAGE OF HAMMING ENCODER!
+    //{
+    //    string input = "10110110";
+    //    Console.WriteLine(input);
+
+    //    var encoded = HammingEncoder.Encode(Helpers.prettyStringToBoolArray(input), input.Length);
+
+    //    Console.WriteLine(Helpers.boolArrayToPrettyString(encoded));
+    //    HammingEncoder.MixinRandomError(encoded, 1);
+
+    //    Console.WriteLine(Helpers.boolArrayToPrettyString(HammingEncoder.Decode(encoded, input.Length)));
+    //}
+
     static void Main(string[] args)
     {
         string data = "TEST";
 
         var binary = StringToBinary(data);
 
-        binary = HammingEncoder.Encode(binary);
+        binary = HammingEncoder.Encode(binary, 8);
 
         var filespace = SaveAudioToFile(EncodeDataToAudio(handshake.Concat(binary).ToArray()), $"output.wav");
 
@@ -59,9 +72,9 @@ class Program
 
         var editedBinary = DecodeAudioToData(filespace);
 
-        editedBinary = HammingEncoder.MixinRandomError(editedBinary, 1); // Mix in an false bit for funsies :)
+        HammingEncoder.MixinRandomError(editedBinary, 1); // Mix in an false bit for funsies :)
 
-        var dataConvertedData = BinaryToString(HammingEncoder.Decode(editedBinary));
+        var dataConvertedData = BinaryToString(HammingEncoder.Decode(editedBinary, 8));
 
         Console.WriteLine(dataConvertedData);
         Console.WriteLine($"Was it a failure? : {dataConvertedData != data}");
