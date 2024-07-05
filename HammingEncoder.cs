@@ -144,6 +144,7 @@ namespace AudioData
             int faultyBitPosition = ErrorSyndrome(encoded);
             if (faultyBitPosition != -1 && faultyBitPosition < encoded.Length)
             {
+                Console.WriteLine("BITFLIP!");
                 encoded[faultyBitPosition] = !encoded[faultyBitPosition];
             }
 

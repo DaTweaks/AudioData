@@ -113,7 +113,7 @@ class Program
 
         if (binary.Length % 8 != 0)
         {
-            throw new ArgumentException("The amount of bits is not in 8 bit pairs. Make sure you aren't sending in a hamming encoded bit.");
+            binary = MakeLengthMultipleOf8(binary);
         }
 
         for (int i = 0; i < binary.Length; i += 8)
@@ -130,6 +130,26 @@ class Program
         }
 
         return sb.ToString();
+    }
+
+    static bool[] MakeLengthMultipleOf8(bool[] boolArray)
+    {
+        int originalLength = boolArray.Length;
+        int newLength = originalLength;
+
+        // Calculate the new length that is a multiple of 8
+        while (newLength % 8 != 0)
+        {
+            newLength--;
+        }
+
+        // Create a new array with the adjusted length
+        bool[] adjustedArray = new bool[newLength];
+
+        // Copy elements from the original array to the adjusted array
+        Array.Copy(boolArray, adjustedArray, newLength);
+
+        return adjustedArray;
     }
 
     #region Audio
@@ -177,17 +197,38 @@ class Program
             }
         }
 
+        // When trying to 
+
         var list = audioData.ToList();
 
         var random = new Random();
 
-        for (int i = 0; i < 50000; i++)
+        for (int i = 0; i < 50000; i++) // Set random static at the beginning and end
         {
-            list.Insert(0, list[random.Next(list.Count)]);
-            list.Insert(list.Count-1, list[random.Next(list.Count)]);
+            list.Insert(0, 0);
+            list.Insert(list.Count-1, 0);
         }
 
-        return list.ToArray();
+        return AddNoise(list.ToArray(), 2f);
+    }
+
+    static float[] AddNoise(float[] soundArray, float noiseLevel)
+    {
+        Random rand = new Random();
+
+        for (int i = 0; i < soundArray.Length; i++)
+        {
+            // Generate noise in the range of -noiseLevel to +noiseLevel
+            float noise = (float)(rand.NextDouble() * 2.0 - 1.0) * noiseLevel;
+            soundArray[i] += noise;
+
+            // Ensure that the values stay within the valid range
+            if (soundArray[i] > 1.0f)
+                soundArray[i] = 1.0f;
+            else if (soundArray[i] < -1.0f)
+                soundArray[i] = -1.0f;
+        }
+        return soundArray;
     }
 
     static bool[] DecodeAudioToData(string fileName)
