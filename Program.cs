@@ -39,9 +39,8 @@ class Program
     const double BitDuration = 0.0125; // seconds
     const double Frequency0 = 1000; // Frequency for binary 0
     const double Frequency1 = 2000; // Frequency for binary 1
-    public static bool[] handshake = { true, false, true, false, false, true, false, true };
 
-    //static void Main(string[] args) // EXAMPLE USAGE OF HAMMING ENCODER!
+    //static void Main(string[] args) // EXAMPLE USAGE OF HAMMING ENCODER!aa
     //{
     //    string input = "10110110";
     //    Console.WriteLine(input);
@@ -60,9 +59,9 @@ class Program
 
         var binary = StringToBinary(data);
 
-        binary = HammingEncoder.Encode(binary, 8);
+        binary = HammingEncoder.GroupEncode(binary, 8);
 
-        var filespace = SaveAudioToFile(EncodeDataToAudio(handshake.Concat(binary).ToArray()), $"output.wav");
+        var filespace = SaveAudioToFile(EncodeDataToAudio(binary), $"output.wav");
 
         Console.WriteLine($"Sending data. Send time is:  {GetWavFileDuration("output.wav").Seconds}.{GetWavFileDuration("output.wav").Milliseconds} Seconds");
 
@@ -74,7 +73,7 @@ class Program
 
         HammingEncoder.MixinRandomError(editedBinary, 1); // Mix in an false bit for funsies :)
 
-        var dataConvertedData = BinaryToString(HammingEncoder.Decode(editedBinary, 8));
+        var dataConvertedData = BinaryToString(HammingEncoder.GroupDecode(editedBinary, 8));
 
         Console.WriteLine(dataConvertedData);
         Console.WriteLine($"Was it a failure? : {dataConvertedData != data}");
@@ -161,8 +160,12 @@ class Program
 
     static float[] EncodeDataToAudio(bool[] data)
     {
+        var handshake = GenerateHandshake();
+        data = handshake.Concat(data).Concat(handshake).ToArray();
+
         int samplesPerBit = (int)(SampleRate * BitDuration);
-        float[] audioData = new float[data.Length * samplesPerBit];
+
+        float[] audioData = new float[(data.Length * samplesPerBit)];
 
         for (int i = 0; i < data.Length; i++)
         {
@@ -174,7 +177,17 @@ class Program
             }
         }
 
-        return audioData;
+        var list = audioData.ToList();
+
+        var random = new Random();
+
+        for (int i = 0; i < 50000; i++)
+        {
+            list.Insert(0, list[random.Next(list.Count)]);
+            list.Insert(list.Count-1, list[random.Next(list.Count)]);
+        }
+
+        return list.ToArray();
     }
 
     static bool[] DecodeAudioToData(string fileName)
@@ -192,14 +205,16 @@ class Program
             decodedStringData.Add(frequency == Frequency0 ? false : true);
         }
 
-        return RemoveBeforeHandShake(decodedStringData.ToArray());
+        var handshake = GenerateHandshake();
+
+        return RemoveBeforeHandShake(RemoveAfterHandShake(decodedStringData.ToArray(), handshake), handshake);
     }
 
     /// <summary>
     /// Removes the handshake that occurs before the transmission. and all bits that occur before it.
     /// </summary>
     /// <returns>Updated data that starts when the data starts.</returns>
-    public static bool[] RemoveBeforeHandShake(bool[] input)
+    public static bool[] RemoveBeforeHandShake(bool[] input, bool[] handshake)
     {
         int handshakeLength = handshake.Length;
         int inputLength = input.Length;
@@ -227,10 +242,58 @@ class Program
             }
         }
 
-        // If no handshake pattern is found, return an empty array
-        return new bool[0];
+        // If no handshake pattern is found, return the original array
+        return input;
     }
 
+    /// <summary>
+    /// Removes the handshake that occurs at the end of the transmission and all bits that occur after it.
+    /// </summary>
+    /// <returns>All the data that was sent before the handshake</returns>
+    public static bool[] RemoveAfterHandShake(bool[] input, bool[] handshake)
+    {
+        int handshakeLength = handshake.Length;
+        int inputLength = input.Length;
+
+        // Iterate through the input array to find the handshake pattern, starting from the end
+        for (int i = inputLength - handshakeLength; i >= 0; i--)
+        {
+            bool isMatch = true;
+            for (int j = 0; j < handshakeLength; j++)
+            {
+                if (input[i + j] != handshake[j])
+                {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            // If the handshake pattern is found, return the array up to the start of the handshake
+            if (isMatch)
+            {
+                bool[] result = new bool[i];
+                Array.Copy(input, result, i);
+                return result;
+            }
+        }
+
+        // If no handshake pattern is found, return the original array
+        return input;
+    }
+
+    public static bool[] GenerateHandshake()
+    {
+        int handshakeLength = 100;
+
+        List<bool> result = new List<bool>();
+
+        for (int i = 0; i < handshakeLength; i++)
+        {
+            result.Add(i > (handshakeLength / 2));
+        }
+
+        return result.ToArray();
+    }
     static double DetectFrequency(float[] samples)
     {
         double power0 = Goertzel(samples, Frequency0);

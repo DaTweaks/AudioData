@@ -35,7 +35,7 @@ namespace AudioData
     {
         /// <returns>Array of Encoded Hamming code bits</returns>
         /// <param name="byteSize">The prededermined size of the bits. Sizes of 4 and 8 Are supported.</param>
-        public static bool[] Encode(bool[] code, int byteSize)
+        public static bool[] GroupEncode(bool[] code, int byteSize)
         {
             if (byteSize != 4 && byteSize != 8)
                 throw new Exception("byteSize must be 8 or 4.");
@@ -48,7 +48,7 @@ namespace AudioData
             {
                 bool[] chunk = new bool[Math.Min(8, code.Length - i)];
                 Array.Copy(code, i, chunk, 0, chunk.Length);
-                result.Add(HEncode(chunk));
+                result.Add(SingleEncode(chunk));
             }
 
             // Calculate the total length of the combined array
@@ -75,7 +75,7 @@ namespace AudioData
         /// <param name="code">Array of Encoded Hamming code bits.</param>
         /// <param name="byteSize">The prededermined size of the bits. (AKA the size of what you expect to come out)</param>
         /// <returns>Array of pairs in bytesize</returns>
-        public static bool[] Decode(bool[] code, int byteSize)
+        public static bool[] GroupDecode(bool[] code, int byteSize)
         {
             if (byteSize != 4 && byteSize != 8)
                 throw new Exception("byteSize must be 8 or 4.");
@@ -88,7 +88,7 @@ namespace AudioData
             {
                 bool[] chunk = new bool[Math.Min(length, code.Length - i)];
                 Array.Copy(code, i, chunk, 0, chunk.Length);
-                result.Add(HDecode(chunk));
+                result.Add(SingleDecode(chunk));
             }
 
             // Calculate the total length of the combined array
@@ -112,7 +112,7 @@ namespace AudioData
             return combinedArray;
         }
 
-        private static bool[] HEncode(bool[] code)
+        public static bool[] SingleEncode(bool[] code)
         {
             var parityPositions =  Helpers.GetParityPositions(code);
 
@@ -139,7 +139,7 @@ namespace AudioData
             return encoded;
         }
 
-        private static bool[] HDecode(bool[] encoded)
+        public static bool[] SingleDecode(bool[] encoded)
         {
             int faultyBitPosition = ErrorSyndrome(encoded);
             if (faultyBitPosition != -1 && faultyBitPosition < encoded.Length)
