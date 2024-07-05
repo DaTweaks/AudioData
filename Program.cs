@@ -40,7 +40,7 @@ class Program
     const double Frequency0 = 1000; // Frequency for binary 0
     const double Frequency1 = 2000; // Frequency for binary 1
 
-    //static void Main(string[] args) // EXAMPLE USAGE OF HAMMING ENCODER!aa
+    //static void Main(string[] args) // EXAMPLE USAGE OF HAMMING ENCODER!
     //{
     //    string input = "10110110";
     //    Console.WriteLine(input);
@@ -55,7 +55,7 @@ class Program
 
     static void Main(string[] args)
     {
-        string data = "TEST";
+        string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
 
         var binary = StringToBinary(data);
 
@@ -63,7 +63,7 @@ class Program
 
         var filespace = SaveAudioToFile(EncodeDataToAudio(binary), $"output.wav");
 
-        Console.WriteLine($"Sending data. Send time is:  {GetWavFileDuration("output.wav").Seconds}.{GetWavFileDuration("output.wav").Milliseconds} Seconds");
+        Console.WriteLine($"Sending data. Send time is: {GetWavFileDuration("output.wav").Seconds}.{GetWavFileDuration("output.wav").Milliseconds} Seconds");
 
         PlayAudio(filespace);
 
@@ -71,14 +71,12 @@ class Program
 
         var editedBinary = DecodeAudioToData(filespace);
 
-        HammingEncoder.MixinRandomError(editedBinary, 1); // Mix in an false bit for funsies :)
+        //HammingEncoder.MixinRandomError(editedBinary, 1); // Mix in an false bit for funsies :)
 
         var dataConvertedData = BinaryToString(HammingEncoder.GroupDecode(editedBinary, 8));
 
         Console.WriteLine(dataConvertedData);
         Console.WriteLine($"Was it a failure? : {dataConvertedData != data}");
-
-        Console.ReadKey(true);
     }
 
     /// <param name="text">data to be converted.</param>
@@ -197,13 +195,11 @@ class Program
             }
         }
 
-        // When trying to 
-
         var list = audioData.ToList();
 
         var random = new Random();
 
-        for (int i = 0; i < 50000; i++) // Set random static at the beginning and end
+        for (int i = 0; i < 50000; i++) // Pad the beginning and end of the array
         {
             list.Insert(0, 0);
             list.Insert(list.Count-1, 0);
@@ -335,6 +331,7 @@ class Program
 
         return result.ToArray();
     }
+
     static double DetectFrequency(float[] samples)
     {
         double power0 = Goertzel(samples, Frequency0);
