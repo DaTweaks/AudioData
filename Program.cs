@@ -55,9 +55,13 @@ class Program
 
     static void Main(string[] args)
     {
+        string encryptionKey = "hemligtLösenord";
+        
         string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
-
-        var binary = StringToBinary(data);
+        
+        var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
+        
+        var binary = StringToBinary(encryptedData);
 
         binary = HammingEncoder.GroupEncode(binary, 8);
 
@@ -73,7 +77,7 @@ class Program
 
         //HammingEncoder.MixinRandomError(editedBinary, 1); // Mix in an false bit for funsies :)
 
-        var dataConvertedData = BinaryToString(HammingEncoder.GroupDecode(editedBinary, 8));
+        var dataConvertedData = AESEncryption.DecryptString(BinaryToString(HammingEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
 
         Console.WriteLine(dataConvertedData);
         Console.WriteLine($"Was it a failure? : {dataConvertedData != data}");
@@ -154,18 +158,29 @@ class Program
 
     static void PlayAudio(string fileName)
     {
-        using (var audioFile = new AudioFileReader(fileName))
-        using (var outputDevice = new WaveOutEvent())
+        try
         {
-            outputDevice.Init(audioFile);
-            outputDevice.DeviceNumber = 0;
-            outputDevice.Volume = 0.2f;
-            outputDevice.Play();
-            while (outputDevice.PlaybackState == PlaybackState.Playing)
+            using (var audioFile = new AudioFileReader(fileName))
             {
-                Thread.Sleep(1000);
+                using (var outputDevice = new WaveOutEvent())
+                {
+                    outputDevice.Init(audioFile);
+                    outputDevice.DeviceNumber = 0;
+                    outputDevice.Volume = 0.2f;
+                    outputDevice.Play();
+                    while (outputDevice.PlaybackState == PlaybackState.Playing)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                }
             }
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+
     }
 
     static TimeSpan GetWavFileDuration(string fileName)
