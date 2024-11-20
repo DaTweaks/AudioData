@@ -38,7 +38,7 @@ class Program
     const int SampleRate = 44100; // Hz
     const double BitDuration = 0.0125; // seconds
     const double Frequency0 = 1000; // Frequency for binary 0
-    const double Frequency1 = 2000; // Frequency for binary 1
+    const double Frequency1 = 3000; // Frequency for binary 1
 
     //static void Main(string[] args) // EXAMPLE USAGE OF HAMMING ENCODER!
     //{
@@ -193,8 +193,9 @@ class Program
 
     static float[] EncodeDataToAudio(bool[] data)
     {
-        var handshake = GenerateHandshake();
-        data = handshake.Concat(data).Concat(handshake).ToArray();
+        var startHandshake = GenerateStartHandshake();
+        var endHandshake = GenerateEndHandshake();
+        data = startHandshake.Concat(data).Concat(endHandshake).ToArray();
 
         int samplesPerBit = (int)(SampleRate * BitDuration);
 
@@ -257,19 +258,29 @@ class Program
             decodedStringData.Add(frequency == Frequency0 ? false : true);
         }
 
-        var handshake = GenerateHandshake();
+        return RemoveBeforeHandShake(RemoveAfterHandShake(decodedStringData.ToArray(), GenerateEndHandshake()), GenerateStartHandshake());
+    }
 
-        return RemoveBeforeHandShake(RemoveAfterHandShake(decodedStringData.ToArray(), handshake), handshake);
+    public static bool[] GenerateStartHandshake()
+    {
+        return StringToBinary("S\u0002");
+    }
+
+    private static bool[] GenerateEndHandshake()
+    {
+        return StringToBinary("\u0003E");
     }
 
     /// <summary>
     /// Removes the handshake that occurs before the transmission. and all bits that occur before it.
     /// </summary>
     /// <returns>Updated data that starts when the data starts.</returns>
-    public static bool[] RemoveBeforeHandShake(bool[] input, bool[] handshake)
+    private static bool[] RemoveBeforeHandShake(bool[] input, bool[] handshake)
     {
         int handshakeLength = handshake.Length;
         int inputLength = input.Length;
+
+        List<int> positions = new List<int>();
 
         // Iterate through the input array to find the handshake pattern
         for (int i = 0; i <= inputLength - handshakeLength; i++)
@@ -294,15 +305,15 @@ class Program
             }
         }
 
-        // If no handshake pattern is found, return the original array
-        return input;
+        // If no handshake pattern is found, return empty.
+        return new bool[0];
     }
 
     /// <summary>
     /// Removes the handshake that occurs at the end of the transmission and all bits that occur after it.
     /// </summary>
     /// <returns>All the data that was sent before the handshake</returns>
-    public static bool[] RemoveAfterHandShake(bool[] input, bool[] handshake)
+    private static bool[] RemoveAfterHandShake(bool[] input, bool[] handshake)// TODO: DO SO IT TAKES THE LAST ONE IT SEES!
     {
         int handshakeLength = handshake.Length;
         int inputLength = input.Length;
@@ -330,7 +341,7 @@ class Program
         }
 
         // If no handshake pattern is found, return the original array
-        return input;
+        return new bool[0];
     }
 
     public static bool[] GenerateHandshake()

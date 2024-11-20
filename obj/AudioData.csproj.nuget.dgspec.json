@@ -1,25 +1,27 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\david\\RiderProjects\\Crypto\\Crypto\\AudioData.csproj": {}
+    "C:\\Users\\david\\source\\repos\\AudioData\\AudioData\\AudioData.csproj": {}
   },
   "projects": {
-    "C:\\Users\\david\\RiderProjects\\Crypto\\Crypto\\AudioData.csproj": {
+    "C:\\Users\\david\\source\\repos\\AudioData\\AudioData\\AudioData.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\david\\RiderProjects\\Crypto\\Crypto\\AudioData.csproj",
+        "projectUniqueName": "C:\\Users\\david\\source\\repos\\AudioData\\AudioData\\AudioData.csproj",
         "projectName": "AudioData",
-        "projectPath": "C:\\Users\\david\\RiderProjects\\Crypto\\Crypto\\AudioData.csproj",
+        "projectPath": "C:\\Users\\david\\source\\repos\\AudioData\\AudioData\\AudioData.csproj",
         "packagesPath": "C:\\Users\\david\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\david\\RiderProjects\\Crypto\\Crypto\\obj\\",
+        "outputPath": "C:\\Users\\david\\source\\repos\\AudioData\\AudioData\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\david\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\david\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -64,7 +66,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Users\\david\\.dotnet\\sdk\\8.0.303/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
