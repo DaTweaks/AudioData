@@ -21,6 +21,7 @@
 //  =============================================================================
 
 using NAudio.CoreAudioApi;
+using NAudio.Dsp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -144,7 +145,7 @@ namespace AudioData
             int faultyBitPosition = ErrorSyndrome(encoded);
             if (faultyBitPosition != -1 && faultyBitPosition < encoded.Length)
             {
-                Console.WriteLine("BITFLIP!");
+                //Console.WriteLine("BITFLIP!");
                 encoded[faultyBitPosition] = !encoded[faultyBitPosition];
             }
 
@@ -255,9 +256,17 @@ namespace AudioData
 
         public static bool doXoringForPosition(bool[] vector, int length, int currentHammingPosition)
         {
-            return getPositionsForXoring(length, currentHammingPosition)
-                .Select(x => vector[x - 1])
-                .Aggregate((x, y) => x ^ y);
+            try
+            {
+                return getPositionsForXoring(length, currentHammingPosition)
+                    .Select(x => vector[x - 1])
+                    .Aggregate((x, y) => x ^ y);
+            }
+            catch
+            {
+                return false;
+            }
+
         }
     }
 }

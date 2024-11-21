@@ -32,13 +32,17 @@ using NAudio;
 using System.Security.Cryptography;
 using System.Runtime.InteropServices;
 using Microsoft.VisualBasic;
+using System.IO;
+using System.Diagnostics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 class Program
 {
     const int SampleRate = 44100; // Hz
-    const double BitDuration = 0.0125; // seconds
+    const double BPS = 80;
+    const double BitDuration = 1.0 / BPS; // seconds
     const double Frequency0 = 1000; // Frequency for binary 0
-    const double Frequency1 = 2000; // Frequency for binary 1
+    const double Frequency1 = 3000; // Frequency for binary 1
 
     //static void Main(string[] args) // EXAMPLE USAGE OF HAMMING ENCODER!
     //{
@@ -53,34 +57,81 @@ class Program
     //    Console.WriteLine(Helpers.boolArrayToPrettyString(HammingEncoder.Decode(encoded, input.Length)));
     //}
 
+    public static List<bool> tries = new List<bool>();
+
+    public static void updateTries()
+    {
+        string lastoutput = "";
+        while (true)
+        {
+            Thread.Sleep(10);
+            Console.SetCursorPosition(0, 0);
+
+            int succeeded = 0;
+
+            for(int i = 0; i < tries.Count; i++)
+            {
+                if (tries[i])
+                {
+                    succeeded++;
+                }
+            }
+
+            string thisMessage = $"Tried this many times: {tries.Count} succeeded this many times: {succeeded} SuccessPercent: {((double)succeeded / (double)tries.Count) * 100}%";
+
+            if(thisMessage.Length < lastoutput.Length)
+            {
+                Console.Clear();
+            }
+
+            lastoutput = thisMessage;
+
+            Console.Write(thisMessage);
+        }
+    }
+
+
+
     static void Main(string[] args)
     {
-        string encryptionKey = "hemligtLösenord";
-        
-        string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
-        
-        var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
-        
-        var binary = StringToBinary(encryptedData);
+        Thread thread = new Thread(updateTries);
+        thread.Start(); 
+        while (true)
+        {
+            string encryptionKey = "hemligtLösenord";
 
-        binary = HammingEncoder.GroupEncode(binary, 8);
+            string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
 
-        var filespace = SaveAudioToFile(EncodeDataToAudio(binary), $"output.wav");
+            var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
 
-        Console.WriteLine($"Sending data. Send time is: {GetWavFileDuration("output.wav").Seconds}.{GetWavFileDuration("output.wav").Milliseconds} Seconds");
+            var binary = StringToBinary(encryptedData);
 
-        PlayAudio(filespace);
+            binary = HammingEncoder.GroupEncode(binary, 8);
 
-        Console.WriteLine("Data sent!");
+            //var filespace = SaveAudioToFile(EncodeDataToAudio(binary), $"output.wav");
 
-        var editedBinary = DecodeAudioToData(filespace);
+            var audioData = EncodeDataToAudio(binary);
 
-        //HammingEncoder.MixinRandomError(editedBinary, 1); // Mix in an false bit for funsies :)
+            //Console.WriteLine($"Sending data. Send time is: {GetWavFileDuration("output.wav").Seconds}.{GetWavFileDuration("output.wav").Milliseconds} Seconds");
 
-        var dataConvertedData = AESEncryption.DecryptString(BinaryToString(HammingEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+            //PlayAudio(filespace);
 
-        Console.WriteLine(dataConvertedData);
-        Console.WriteLine($"Was it a failure? : {dataConvertedData != data}");
+            //Console.WriteLine("Data sent!");
+
+            //var editedBinary = DecodeAudioToData(filespace);
+
+            var editedBinary = DecodeAudioToData(audioData);
+
+            //HammingEncoder.MixinRandomError(editedBinary, 1); // Mix in an false bit for funsies :)
+
+            var dataConvertedData = AESEncryption.DecryptString(BinaryToString(HammingEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+
+            tries.Add(dataConvertedData == data);
+
+            //Console.WriteLine(dataConvertedData);
+            //Console.WriteLine($"Was it a failure? : {dataConvertedData != data}");
+        }
+
     }
 
     /// <param name="text">data to be converted.</param>
@@ -193,8 +244,10 @@ class Program
 
     static float[] EncodeDataToAudio(bool[] data)
     {
-        var handshake = GenerateHandshake();
-        data = handshake.Concat(data).Concat(handshake).ToArray();
+        data = GenerateStartHandshakeEncoded()
+       .Concat(data)
+       .Concat(GenerateEndHandshakeEncoded())
+       .ToArray();
 
         int samplesPerBit = (int)(SampleRate * BitDuration);
 
@@ -210,20 +263,22 @@ class Program
             }
         }
 
-        var list = audioData.ToList();
+        var list = PadArrayWithZeros(audioData, 50000);
 
-        var random = new Random();
+        return AddNoise(list, 1f);
+    }
+    static float[] PadArrayWithZeros(float[] original, int paddingAmount)
+    {
+        int newSize = original.Length + 2 * paddingAmount;
+        float[] paddedArray = new float[newSize];
 
-        for (int i = 0; i < 50000; i++) // Pad the beginning and end of the array
-        {
-            list.Insert(0, 0);
-            list.Insert(list.Count-1, 0);
-        }
+        Array.Copy(original, 0, paddedArray, paddingAmount, original.Length);
 
-        return AddNoise(list.ToArray(), 2f);
+        return paddedArray;
     }
 
-    static float[] AddNoise(float[] soundArray, float noiseLevel)
+
+static float[] AddNoise(float[] soundArray, float noiseLevel)
     {
         Random rand = new Random();
 
@@ -257,34 +312,69 @@ class Program
             decodedStringData.Add(frequency == Frequency0 ? false : true);
         }
 
-        var handshake = GenerateHandshake();
+        return RemoveBeforeHandShake(RemoveAfterHandShake(decodedStringData.ToArray()));
+    }
 
-        return RemoveBeforeHandShake(RemoveAfterHandShake(decodedStringData.ToArray(), handshake), handshake);
+    static bool[] DecodeAudioToData(float[] audioData)
+    {
+        // Calculate where the bits will be placed.
+        int samplesPerBit = (int)(SampleRate * BitDuration);
+
+        List<bool> decodedStringData = new List<bool>();
+        for (int i = 0; i < audioData.Length; i += samplesPerBit)
+        {
+            float[] bitData = audioData.Skip(i).Take(samplesPerBit).ToArray();
+            double frequency = DetectFrequency(bitData);
+            decodedStringData.Add(frequency == Frequency0 ? false : true);
+        }
+
+        return RemoveBeforeHandShake(RemoveAfterHandShake(decodedStringData.ToArray()));
     }
 
     /// <summary>
     /// Removes the handshake that occurs before the transmission. and all bits that occur before it.
     /// </summary>
     /// <returns>Updated data that starts when the data starts.</returns>
-    public static bool[] RemoveBeforeHandShake(bool[] input, bool[] handshake)
+    public static bool[] RemoveBeforeHandShake(bool[] input)
     {
-        int handshakeLength = handshake.Length;
+        var handshake = GenerateStartHandshake();
+        var EncodedHandshake = GenerateStartHandshakeEncoded();
+        int handshakeLength = EncodedHandshake.Length;
         int inputLength = input.Length;
 
-        // Iterate through the input array to find the handshake pattern
+        // Iterate through the input array to find the handshake pattern, starting from the end
         for (int i = 0; i <= inputLength - handshakeLength; i++)
         {
-            bool isMatch = true;
-            for (int j = 0; j < handshakeLength; j++)
+            var tempArray = new bool[handshakeLength];
+            Array.Copy(input, i, tempArray, 0, handshakeLength);
+
+            bool[] output = new bool[0];
+
+            try
             {
-                if (input[i + j] != handshake[j])
+                output = HammingEncoder.GroupDecode(tempArray, 8);
+            }
+            catch
+            {
+                continue;
+            }
+
+            if (output.Length == 0)
+            {
+                continue;
+            }
+
+            bool isMatch = true;
+            for (int j = 0; j < output.Length; j++)
+            {
+                if (output[j] != handshake[j])
                 {
                     isMatch = false;
                     break;
                 }
             }
 
-            // If the handshake pattern is found, return the array from the end of the handshake to the end of the input
+            // If the handshake pattern is found, return the array up to the start of the handshake
             if (isMatch)
             {
                 int newLength = inputLength - (i + handshakeLength);
@@ -294,26 +384,46 @@ class Program
             }
         }
 
-        // If no handshake pattern is found, return the original array
-        return input;
+        // If no handshake pattern is found, return a empty array.
+        return new bool[0];
     }
 
     /// <summary>
     /// Removes the handshake that occurs at the end of the transmission and all bits that occur after it.
     /// </summary>
     /// <returns>All the data that was sent before the handshake</returns>
-    public static bool[] RemoveAfterHandShake(bool[] input, bool[] handshake)
+    public static bool[] RemoveAfterHandShake(bool[] input)
     {
-        int handshakeLength = handshake.Length;
+        var handshake =  GenerateEndHandshake();
+        var EncodedHandshake = GenerateEndHandshakeEncoded();
+        int handshakeLength = EncodedHandshake.Length;
         int inputLength = input.Length;
 
         // Iterate through the input array to find the handshake pattern, starting from the end
         for (int i = inputLength - handshakeLength; i >= 0; i--)
         {
-            bool isMatch = true;
-            for (int j = 0; j < handshakeLength; j++)
+            var tempArray = new bool[handshakeLength];
+            Array.Copy(input, i, tempArray, 0, handshakeLength);
+
+            bool[] output = new bool[0];
+
+            try{
+                output = HammingEncoder.GroupDecode(tempArray, 8);
+            }
+            catch
             {
-                if (input[i + j] != handshake[j])
+                continue;
+            }
+
+            if(output.Length == 0)
+            {
+                continue;
+            }
+
+            bool isMatch = true;
+            for (int j = 0; j < output.Length; j++)
+            {
+                if (output[j] != handshake[j])
                 {
                     isMatch = false;
                     break;
@@ -329,22 +439,28 @@ class Program
             }
         }
 
-        // If no handshake pattern is found, return the original array
-        return input;
+        // If no handshake pattern is found, return a empty array.
+        return new bool[0];
     }
 
-    public static bool[] GenerateHandshake()
+    public static bool[] GenerateStartHandshake()
     {
-        int handshakeLength = 100;
+        return StringToBinary("S\u0002");
+    }
 
-        List<bool> result = new List<bool>();
+    public static bool[] GenerateStartHandshakeEncoded()
+    {
+        return HammingEncoder.GroupEncode(GenerateStartHandshake(), 8);
+    }
 
-        for (int i = 0; i < handshakeLength; i++)
-        {
-            result.Add(i > (handshakeLength / 2));
-        }
+    public static bool[] GenerateEndHandshake()
+    {
+        return StringToBinary("\u0003E");
+    }
 
-        return result.ToArray();
+    public static bool[] GenerateEndHandshakeEncoded()
+    {
+        return HammingEncoder.GroupEncode(GenerateEndHandshake(), 8);
     }
 
     static double DetectFrequency(float[] samples)

@@ -1,0 +1,79 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\david\\source\\repos\\AudioData\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\hammingencoder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|solutionrelative:hammingencoder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\aesencryption.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|solutionrelative:aesencryption.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAABcBAAAAAAAAAIAwwCUBAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-23T11:58:09.771Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AESEncryption.cs",
+              "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\AESEncryption.cs",
+              "RelativeDocumentMoniker": "AESEncryption.cs",
+              "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\AESEncryption.cs",
+              "RelativeToolTip": "AESEncryption.cs",
+              "ViewState": "AgIAACMAAAAAAAAAAAAuwCwAAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-23T11:58:01.203Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "HammingEncoder.cs",
+              "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\HammingEncoder.cs",
+              "RelativeDocumentMoniker": "HammingEncoder.cs",
+              "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\HammingEncoder.cs",
+              "RelativeToolTip": "HammingEncoder.cs",
+              "ViewState": "AgIAAPcAAAAAAAAAAAAuwAoBAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-23T11:57:55.711Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
