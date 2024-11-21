@@ -32,7 +32,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AudioData
 {
-    internal class HammingEncoder
+    internal class MessageEncoder
     {
         /// <returns>Array of Encoded Hamming code bits</returns>
         /// <param name="byteSize">The prededermined size of the bits. Sizes of 4 and 8 Are supported.</param>
