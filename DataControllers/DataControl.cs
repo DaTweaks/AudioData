@@ -9,9 +9,8 @@ namespace AudioData.DataControllers
 {
     public abstract class DataControl
     {
-        const int SampleRate = 44100; // Hz
-        const double BPS = 80;
-        const double BitDuration = 1.0 / BPS; // seconds
+        public int GetSampleRate() => 44100;
+        public double GetBitDuration(int BPS) => 1.0 / BPS;
 
         /// <param name="text">data to be converted.</param>
         /// <returns>Array of 8 bit pairs.</returns>
