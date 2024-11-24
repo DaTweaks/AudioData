@@ -35,68 +35,133 @@ using Microsoft.VisualBasic;
 using System.IO;
 using System.Diagnostics;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using AudioData.DataControllers;
 
 class Program
 {
-    const int SampleRate = 44100; // Hz
-    const double BPS = 80;
-    const double BitDuration = 1.0 / BPS; // seconds
-    const double Frequency0 = 1000; // Frequency for binary 0
-    const double Frequency1 = 3000; // Frequency for binary 1
+    static void Main(string[] args)
+    {
+        UnitTestFSK();
+    }
 
-    //static void Main(string[] args) // EXAMPLE USAGE OF HAMMING ENCODER!
-    //{
-    //    string input = "10110110";
-    //    Console.WriteLine(input);
+    #region HammingEncoder
 
-    //    var encoded = MessageEncoder.GroupDecode(Helpers.prettyStringToBoolArray(input), input.Length);
+    static void TestHamming() // EXAMPLE USAGE OF HAMMING ENCODER!
+    {
+        string input = "10110110";
+        Console.WriteLine(input);
 
-    //    Console.WriteLine(Helpers.boolArrayToPrettyString(encoded));
-    //    MessageEncoder.MixinRandomError(encoded, 1);
+        var encoded = MessageEncoder.GroupDecode(Helpers.prettyStringToBoolArray(input), input.Length);
 
-    //    Console.WriteLine(Helpers.boolArrayToPrettyString(MessageEncoder.GroupDecode(encoded, input.Length)));
-    //}
+        Console.WriteLine(Helpers.boolArrayToPrettyString(encoded));
+        MessageEncoder.MixinRandomError(encoded, 1);
+
+        Console.WriteLine(Helpers.boolArrayToPrettyString(MessageEncoder.GroupDecode(encoded, input.Length)));
+    }
+
+    #endregion
+
+    #region QPSK
+
+    public static void TestQPSK() 
+    { 
+        var datacontrol = new QPSK();
+
+        string encryptionKey = "hemligtLösenord";
+
+        string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
+
+        Console.WriteLine($"Modulating Data: {data}");
+
+        var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
+
+        var binary = datacontrol.StringToBinary(encryptedData);
+
+        var audioData = datacontrol.EncodeDataToAudio(binary);
+
+        datacontrol.SaveAudioToFile(audioData, "OUTPUT.wav");
+
+        var editedBinary = datacontrol.DecodeAudioToData(audioData);
+
+        var dataConvertedData = AESEncryption.DecryptString(datacontrol.BinaryToString(editedBinary), encryptionKey);
+
+        Console.WriteLine($"Demodulated data: {dataConvertedData} Correct Demodulation: {dataConvertedData == data}");
+
+        Console.ReadKey();
+    }
+
+    #endregion
+
+    #region FSK
+
+    public static Dictionary<float, float> totalTries = new Dictionary<float, float>();
 
     public static List<bool> tries = new List<bool>();
 
-    public static void updateTries()
+    public static void UnitTestFSK()
     {
-        string lastoutput = "";
-        while (true)
+        float  startingNoiseValue = 0.0f;
+        //Thread thread = new Thread(updateTries);
+        var datacontrol = new FSK();
+        //thread.Start();
+        while (totalTries.Count != 40)
         {
-            Thread.Sleep(10);
-            Console.SetCursorPosition(0, 0);
+            string encryptionKey = "hemligtLösenord";
 
-            int succeeded = 0;
+            string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
 
-            for(int i = 0; i < tries.Count; i++)
+            var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
+
+            var binary = datacontrol.StringToBinary(encryptedData);
+
+            if (tries.Count >= 1000)
             {
-                if (tries[i])
-                {
-                    succeeded++;
-                }
+                datacontrol.SaveAudioToFile(datacontrol.EncodeDataToAudio(binary, startingNoiseValue), $"OUTPUT_NOISE{startingNoiseValue}.wav");
+                Console.WriteLine($"Complete with noise level: {startingNoiseValue} Percent Calculated: {trypercent()}%");
+                totalTries.Add(startingNoiseValue, (float)trypercent());
+                tries.Clear();
+                startingNoiseValue += 0.1f;
             }
 
-            string thisMessage = $"Tried this many times: {tries.Count} succeeded this many times: {succeeded} SuccessPercent: {((double)succeeded / (double)tries.Count) * 100}%";
+            binary = MessageEncoder.GroupEncode(binary, 8);
 
-            if(thisMessage.Length < lastoutput.Length)
-            {
-                Console.Clear();
-            }
+            var audioData = datacontrol.EncodeDataToAudio(binary, startingNoiseValue);
 
-            lastoutput = thisMessage;
+            var editedBinary = datacontrol.DecodeAudioToData(audioData);
 
-            Console.Write(thisMessage);
+            var dataConvertedData = AESEncryption.DecryptString(datacontrol.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+
+            tries.Add(dataConvertedData == data);
+
+            if (GetSuccess() == 0)
+                datacontrol.SaveAudioToFile(audioData, "ERR.wav");
         }
+
+        string filePath = "data.txt";
+
+        // Use StreamWriter to save the dictionary to a file
+        using (StreamWriter writer = new StreamWriter(filePath))
+        {
+            foreach (var kvp in totalTries)
+            {
+                // Write the key and both float values to the file
+                writer.WriteLine($"NOISE: {kvp.Key}     -   {kvp.Value}%");
+            }
+        }
+
+        Console.WriteLine("DONE!");
+
+        //thread.Abort();
+
+        // WHICH SAVES THE FIRST AND THE LAST NUMBER.
     }
 
-
-
-    static void Main(string[] args)
+    public static void TestFSK()
     {
+        float startingNoiseValue = 3f;
         Thread thread = new Thread(updateTries);
-        var datacontrol = new DataController();
-        thread.Start(); 
+        var datacontrol = new FSK();
+        thread.Start();
         while (true)
         {
             string encryptionKey = "hemligtLösenord";
@@ -109,7 +174,7 @@ class Program
 
             binary = MessageEncoder.GroupEncode(binary, 8);
 
-            var audioData = datacontrol.EncodeDataToAudio(binary);
+            var audioData = datacontrol.EncodeDataToAudio(binary, startingNoiseValue);
 
             var editedBinary = datacontrol.DecodeAudioToData(audioData);
 
@@ -117,8 +182,41 @@ class Program
 
             tries.Add(dataConvertedData == data);
         }
-
     }
 
- 
+    public static void updateTries()
+    {
+        while (true)
+        {
+            Thread.Sleep(10);
+            Console.SetCursorPosition(0, 0);
+            Console.Write($"Tried this many times: {tries.Count} succeeded this many times: {GetSuccess()} SuccessPercent: {trypercent()}%                  ");
+        }
+    }
+
+    public static double trypercent()
+    {
+        int success = GetSuccess();
+        if (success != 0 || tries.Count != 0)
+            return Math.Round(((double)success / (double)tries.Count) * 100, 2);
+
+        return 0;
+    }
+
+    public static int GetSuccess()
+    {
+        int succeeded = 0;
+
+        for (int i = 0; i < tries.Count; i++)
+        {
+            if (tries[i])
+            {
+                succeeded++;
+            }
+        }
+
+        return succeeded;
+    }
+
+    #endregion
 }
