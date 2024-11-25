@@ -20,28 +20,16 @@
 //
 //  =============================================================================
 
-using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using NAudio.Wave;
-using NAudio.CoreAudioApi;
 using AudioData;
-using NAudio;
-using System.Security.Cryptography;
-using System.Runtime.InteropServices;
-using Microsoft.VisualBasic;
-using System.IO;
-using System.Diagnostics;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using AudioData.DataControllers;
+using NAudio.Wave;
+using Spectrogram;
 
 class Program
 {
     static void Main(string[] args)
     {
-        TestQPSK();
+        sINGLE();
     }
 
     #region HammingEncoder
@@ -65,7 +53,7 @@ class Program
 
     public static void TestQPSK() 
     {
-        int SampleRate = 192000;
+        int SampleRate = 44100;
 
         var datacontrol = new QPSK();
 
@@ -81,7 +69,11 @@ class Program
 
         var audioData = datacontrol.EncodeDataToAudio(binary, 0f, SampleRate);
 
+        //datacontrol.PlayAudio(datacontrol.SaveAudioToFile(audioData, "QPSK.wav", SampleRate));
+
         datacontrol.SaveAudioToFile(audioData, "OUTPUT.wav", SampleRate);
+
+        GenerateSpectrogram(audioData, SampleRate, "QPSK.png");
 
         var editedBinary = datacontrol.DecodeAudioToData(audioData, SampleRate);
 
@@ -185,6 +177,32 @@ class Program
         }
     }
 
+    public static void SingleTestFSK()
+    {
+        int SampleRate = 192000;
+        float startingNoiseValue = 3f;
+        var datacontrol = new FSK();
+        string encryptionKey = "hemligtLösenord";
+
+        string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
+
+        var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
+
+        var binary = datacontrol.StringToBinary(encryptedData);
+
+        binary = MessageEncoder.GroupEncode(binary, 8);
+
+        var audioData = datacontrol.EncodeDataToAudio(binary, startingNoiseValue, SampleRate);
+
+        GenerateSpectrogram(audioData, SampleRate, "FSK.png");
+
+        var editedBinary = datacontrol.DecodeAudioToData(audioData, SampleRate);
+
+        var dataConvertedData = AESEncryption.DecryptString(datacontrol.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+
+        tries.Add(dataConvertedData == data);
+    }
+
     public static void updateTries()
     {
         while (true)
@@ -217,6 +235,25 @@ class Program
         }
 
         return succeeded;
+    }
+
+    #endregion
+
+    #region Utils
+
+    public static void GenerateSpectrogram(float[] data, int SampleRate, string name)
+    {
+        var sg = new SpectrogramGenerator(SampleRate, fftSize: 4096, stepSize: 500, maxFreq: 4000);
+
+        double[] doubleData = new double[data.Length];
+
+        for(int i = 0; i < data.Length; i++)
+        {
+            doubleData[i] = data[i];
+        }
+
+        sg.Add(doubleData);
+        sg.SaveImage(name);
     }
 
     #endregion

@@ -31,7 +31,7 @@ namespace AudioData.DataControllers
 {
     public class QPSK : DataControl
     {
-        private const double BitDuration = 0.001; // Example value, adjust as needed
+        private const double BitDuration = 0.1; // Example value, adjust as needed
         private const double CarrierFrequency = 1000; // Example value, adjust as needed
         private static readonly double[] Phases = { 0, Math.PI / 2, Math.PI, 3 * Math.PI / 2 };
 
