@@ -9,19 +9,64 @@ namespace AudioData.DataControllers
 {
     public abstract class DataControl
     {
-        public int GetSampleRate() => 44100;
         public double GetBitDuration(int BPS) => 1.0 / BPS;
 
         /// <param name="text">data to be converted.</param>
+        /// <param name="text">data to be converted.</param>
         /// <returns>Array of 8 bit pairs.</returns>
-        public abstract bool[] StringToBinary(string text);
+        public bool[] StringToBinary(string text)
+
+        {
+            // Initialize a list to store the boolean values
+            List<bool> boolList = new List<bool>();
+
+            // Loop through each character in the input string
+            foreach (char c in text.ToCharArray())
+            {
+                // Convert the character to a binary string, padded to 8 bits
+                string binaryString = Convert.ToString(c, 2).PadLeft(8, '0');
+
+                // Loop through each character in the binary string
+                foreach (char bit in binaryString)
+                {
+                    // Add the boolean value (true for '1', false for '0') to the list
+                    boolList.Add(bit == '1');
+                }
+            }
+
+            // Convert the list to an array and return it
+            return boolList.ToArray();
+        }
 
         /// <param name="binary">Array of 8 bit pairs.</param>
-        public abstract string BinaryToString(bool[] binary);
+        public string BinaryToString(bool[] binary)
+        {
+            StringBuilder sb = new StringBuilder();
 
-        public abstract bool[] DecodeAudioToData(string fileName);
+            if (binary.Length % 8 != 0)
+            {
+                binary = MakeLengthMultipleOf(binary, 8);
+            }
 
-        public abstract bool[] DecodeAudioToData(float[] audioData);
+            for (int i = 0; i < binary.Length; i += 8)
+            {
+                // Create a string representing 8 bits
+                StringBuilder byteStringBuilder = new StringBuilder();
+                for (int j = 0; j < 8; j++)
+                {
+                    byteStringBuilder.Append(binary[i + j] ? '1' : '0');
+                }
+
+                string byteString = byteStringBuilder.ToString();
+                sb.Append((char)Convert.ToByte(byteString, 2));
+            }
+
+            return sb.ToString();
+        }
+
+        public abstract bool[] DecodeAudioToData(string fileName, int SampleRate);
+
+        public abstract bool[] DecodeAudioToData(float[] audioData, int SampleRate);
 
         public bool[] MakeLengthMultipleOf(bool[] boolArray, int multiple)
         {
@@ -78,7 +123,7 @@ namespace AudioData.DataControllers
             }
         }
 
-        public abstract float[] EncodeDataToAudio(bool[] data, float noise);
+        public abstract float[] EncodeDataToAudio(bool[] data, float noise, int SampleRate);
 
         public float[] PadArrayWithZeros(float[] original, int paddingAmount)
         {
@@ -111,9 +156,9 @@ namespace AudioData.DataControllers
 
 
         /// <returns>the file name.</returns>
-        public string SaveAudioToFile(float[] audioData, string fileName)
+        public string SaveAudioToFile(float[] audioData, string fileName, int SampleRate)
         {
-            using (var writer = new WaveFileWriter(fileName, new WaveFormat(GetSampleRate(), 1)))
+            using (var writer = new WaveFileWriter(fileName, new WaveFormat(SampleRate, 1)))
             {
                 writer.WriteSamples(audioData, 0, audioData.Length);
             }

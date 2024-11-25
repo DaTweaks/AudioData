@@ -62,11 +62,9 @@ public class AESEncryption
                 }
             }
         }
-        catch
+        catch // The recieved string was FUBAR, just return it bro.
         {
             return cipherText;
         }
-
-
     }
 }

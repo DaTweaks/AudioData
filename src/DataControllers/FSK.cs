@@ -9,66 +9,14 @@ namespace AudioData.DataControllers
 {
     public class FSK : DataControl
     {
-        const int SampleRate = 44100; // Hz
         const double BPS = 80;
         const double BitDuration = 1.0 / BPS; // seconds
         const double Frequency0 = 1000; // Frequency for binary 0
         const double Frequency1 = 3000; // Frequency for binary 1
 
-        /// <param name="text">data to be converted.</param>
-        /// <returns>Array of 8 bit pairs.</returns>
-        public override bool[] StringToBinary(string text)
-        {
-            // Initialize a list to store the boolean values
-            List<bool> boolList = new List<bool>();
-
-            // Loop through each character in the input string
-            foreach (char c in text.ToCharArray())
-            {
-                // Convert the character to a binary string, padded to 8 bits
-                string binaryString = Convert.ToString(c, 2).PadLeft(8, '0');
-
-                // Loop through each character in the binary string
-                foreach (char bit in binaryString)
-                {
-                    // Add the boolean value (true for '1', false for '0') to the list
-                    boolList.Add(bit == '1');
-                }
-            }
-
-            // Convert the list to an array and return it
-            return boolList.ToArray();
-        }
-
-        /// <param name="binary">Array of 8 bit pairs.</param>
-        public override string BinaryToString(bool[] binary)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            if (binary.Length % 8 != 0)
-            {
-                binary = MakeLengthMultipleOf(binary, 8);
-            }
-
-            for (int i = 0; i < binary.Length; i += 8)
-            {
-                // Create a string representing 8 bits
-                StringBuilder byteStringBuilder = new StringBuilder();
-                for (int j = 0; j < 8; j++)
-                {
-                    byteStringBuilder.Append(binary[i + j] ? '1' : '0');
-                }
-
-                string byteString = byteStringBuilder.ToString();
-                sb.Append((char)Convert.ToByte(byteString, 2));
-            }
-
-            return sb.ToString();
-        }
-
         #region Audio
 
-        public override float[] EncodeDataToAudio(bool[] data, float noise)
+        public override float[] EncodeDataToAudio(bool[] data, float noise, int SampleRate)
         {
             data = GenerateStartHandshakeEncoded()
            .Concat(data)
@@ -94,7 +42,7 @@ namespace AudioData.DataControllers
             return AddNoise(audioData, noise); // Should give like a 50% chance of it coming through completely fine. Will rework encoder.
         }
 
-        public override bool[] DecodeAudioToData(string fileName)
+        public override bool[] DecodeAudioToData(string fileName, int SampleRate)
         {
             // Get AudioData from the file;
             float[] audioData = LoadAudioFromFile(fileName);
@@ -105,14 +53,14 @@ namespace AudioData.DataControllers
             for (int i = 0; i < audioData.Length; i += samplesPerBit)
             {
                 float[] bitData = audioData.Skip(i).Take(samplesPerBit).ToArray();
-                double frequency = DetectFrequency(bitData);
+                double frequency = DetectFrequency(bitData, SampleRate);
                 decodedStringData.Add(frequency == Frequency0 ? false : true);
             }
 
             return RemoveBeforeHandShake(RemoveAfterHandShake(decodedStringData.ToArray()));
         }
-
-        public override bool[] DecodeAudioToData(float[] audioData)
+        
+        public override bool[] DecodeAudioToData(float[] audioData, int SampleRate)
         {
             // Calculate where the bits will be placed.
             int samplesPerBit = (int)(SampleRate * BitDuration);
@@ -121,7 +69,7 @@ namespace AudioData.DataControllers
             for (int i = 0; i < audioData.Length; i += samplesPerBit)
             {
                 float[] bitData = audioData.Skip(i).Take(samplesPerBit).ToArray();
-                double frequency = DetectFrequency(bitData);
+                double frequency = DetectFrequency(bitData, SampleRate);
                 decodedStringData.Add(frequency == Frequency0 ? false : true);
             }
 
@@ -261,15 +209,15 @@ namespace AudioData.DataControllers
             return MessageEncoder.GroupEncode(GenerateEndHandshake(), 8);
         }
 
-        private double DetectFrequency(float[] samples)
+        private double DetectFrequency(float[] samples, int SampleRate)
         {
-            double power0 = Goertzel(samples, Frequency0);
-            double power1 = Goertzel(samples, Frequency1);
+            double power0 = Goertzel(samples, Frequency0, SampleRate);
+            double power1 = Goertzel(samples, Frequency1, SampleRate);
 
             return power0 > power1 ? Frequency0 : Frequency1;
         }
 
-        private double Goertzel(float[] samples, double targetFrequency)
+        private double Goertzel(float[] samples, double targetFrequency, int SampleRate)
         {
             int N = samples.Length;
             double k = (int)(0.5 + N * targetFrequency / SampleRate);

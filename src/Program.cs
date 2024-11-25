@@ -41,7 +41,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        TestFSK();
+        TestQPSK();
     }
 
     #region HammingEncoder
@@ -64,7 +64,9 @@ class Program
     #region QPSK
 
     public static void TestQPSK() 
-    { 
+    {
+        int SampleRate = 192000;
+
         var datacontrol = new QPSK();
 
         string encryptionKey = "hemligtLösenord";
@@ -77,11 +79,11 @@ class Program
 
         var binary = datacontrol.StringToBinary(encryptedData);
 
-        var audioData = datacontrol.EncodeDataToAudio(binary, 0f);
+        var audioData = datacontrol.EncodeDataToAudio(binary, 0f, SampleRate);
 
-        datacontrol.SaveAudioToFile(audioData, "OUTPUT.wav");
+        datacontrol.SaveAudioToFile(audioData, "OUTPUT.wav", SampleRate);
 
-        var editedBinary = datacontrol.DecodeAudioToData(audioData);
+        var editedBinary = datacontrol.DecodeAudioToData(audioData, SampleRate);
 
         var dataConvertedData = AESEncryption.DecryptString(datacontrol.BinaryToString(editedBinary), encryptionKey);
 
@@ -100,11 +102,12 @@ class Program
 
     public static void UnitTestFSK()
     {
-        float  startingNoiseValue = 0.0f;
+        int SampleRate = 192000;
+        float  startingNoiseValue = 2.4f;
         Thread thread = new Thread(updateTries);
         var datacontrol = new FSK();
         thread.Start();
-        while (totalTries.Count != 40)
+        while (totalTries.Count != 70)
         {
             string encryptionKey = "hemligtLösenord";
 
@@ -114,10 +117,10 @@ class Program
 
             var binary = datacontrol.StringToBinary(encryptedData);
 
-            if (tries.Count >= 1000)
+            if (tries.Count >= 100)
             {
-                datacontrol.SaveAudioToFile(datacontrol.EncodeDataToAudio(binary, startingNoiseValue), $"OUTPUT_NOISE{startingNoiseValue}.wav");
-                Console.WriteLine($"Complete with noise level: {startingNoiseValue} Percent Calculated: {trypercent()}%");
+                Console.SetCursorPosition(0, 1);
+                Console.Write($"Complete with noise level: {startingNoiseValue} Percent Calculated: {trypercent()}%                ");
                 totalTries.Add(startingNoiseValue, (float)trypercent());
                 tries.Clear();
                 startingNoiseValue += 0.1f;
@@ -125,16 +128,13 @@ class Program
 
             binary = MessageEncoder.GroupEncode(binary, 8);
 
-            var audioData = datacontrol.EncodeDataToAudio(binary, startingNoiseValue);
+            var audioData = datacontrol.EncodeDataToAudio(binary, startingNoiseValue, SampleRate);
 
-            var editedBinary = datacontrol.DecodeAudioToData(audioData);
+            var editedBinary = datacontrol.DecodeAudioToData(audioData, SampleRate);
 
             var dataConvertedData = AESEncryption.DecryptString(datacontrol.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
 
             tries.Add(dataConvertedData == data);
-
-            if (GetSuccess() == 0)
-                datacontrol.SaveAudioToFile(audioData, "ERR.wav");
         }
 
         string filePath = "data.txt";
@@ -151,13 +151,14 @@ class Program
 
         Console.WriteLine("DONE!");
 
-        thread.Abort();
+        //thread.Abort();
 
         // WHICH SAVES THE FIRST AND THE LAST NUMBER.
     }
 
     public static void TestFSK()
     {
+        int SampleRate = 192000;
         float startingNoiseValue = 3f;
         Thread thread = new Thread(updateTries);
         var datacontrol = new FSK();
@@ -174,9 +175,9 @@ class Program
 
             binary = MessageEncoder.GroupEncode(binary, 8);
 
-            var audioData = datacontrol.EncodeDataToAudio(binary, startingNoiseValue);
+            var audioData = datacontrol.EncodeDataToAudio(binary, startingNoiseValue, SampleRate);
 
-            var editedBinary = datacontrol.DecodeAudioToData(audioData);
+            var editedBinary = datacontrol.DecodeAudioToData(audioData, SampleRate);
 
             var dataConvertedData = AESEncryption.DecryptString(datacontrol.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
 
@@ -198,7 +199,7 @@ class Program
     {
         int success = GetSuccess();
         if (success != 0 || tries.Count != 0)
-            return Math.Round(((double)success / (double)tries.Count) * 100, 2);
+            return Math.Round(((double)success / (double)tries.Count) * 100, 4);
 
         return 0;
     }
