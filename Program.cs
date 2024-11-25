@@ -77,7 +77,7 @@ class Program
 
         var binary = datacontrol.StringToBinary(encryptedData);
 
-        var audioData = datacontrol.EncodeDataToAudio(binary);
+        var audioData = datacontrol.EncodeDataToAudio(binary, 0f);
 
         datacontrol.SaveAudioToFile(audioData, "OUTPUT.wav");
 
