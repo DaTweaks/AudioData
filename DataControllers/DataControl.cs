@@ -113,7 +113,7 @@ namespace AudioData.DataControllers
         /// <returns>the file name.</returns>
         public string SaveAudioToFile(float[] audioData, string fileName)
         {
-            using (var writer = new WaveFileWriter(fileName, new WaveFormat(SampleRate, 1)))
+            using (var writer = new WaveFileWriter(fileName, new WaveFormat(GetSampleRate(), 1)))
             {
                 writer.WriteSamples(audioData, 0, audioData.Length);
             }

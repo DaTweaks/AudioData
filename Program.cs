@@ -41,7 +41,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        UnitTestFSK();
+        TestFSK();
     }
 
     #region HammingEncoder
@@ -101,9 +101,9 @@ class Program
     public static void UnitTestFSK()
     {
         float  startingNoiseValue = 0.0f;
-        //Thread thread = new Thread(updateTries);
+        Thread thread = new Thread(updateTries);
         var datacontrol = new FSK();
-        //thread.Start();
+        thread.Start();
         while (totalTries.Count != 40)
         {
             string encryptionKey = "hemligtLösenord";
@@ -151,7 +151,7 @@ class Program
 
         Console.WriteLine("DONE!");
 
-        //thread.Abort();
+        thread.Abort();
 
         // WHICH SAVES THE FIRST AND THE LAST NUMBER.
     }
