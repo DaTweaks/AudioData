@@ -48,7 +48,7 @@
               "RelativeDocumentMoniker": "src\\DataControllers\\QPSK.cs",
               "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\src\\DataControllers\\QPSK.cs",
               "RelativeToolTip": "src\\DataControllers\\QPSK.cs",
-              "ViewState": "AgIAAEwAAAAAAAAAAAAswGMAAAAiAAAAAAAAAA==",
+              "ViewState": "AgIAAB0AAAAAAAAAAIAwwCoAAAA2AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-25T13:45:44.004Z",
               "IsPinned": true,
@@ -66,7 +66,7 @@
               "RelativeDocumentMoniker": "src\\DataControllers\\FSK.cs",
               "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\src\\DataControllers\\FSK.cs",
               "RelativeToolTip": "src\\DataControllers\\FSK.cs",
-              "ViewState": "AgIAACIAAAAAAAAAAAAqwDYAAAANAAAAAAAAAA==",
+              "ViewState": "AgIAACgAAAAAAAAAAAAUwFYAAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-25T11:50:35.086Z",
               "EditorCaption": ""
@@ -94,8 +94,7 @@
               "RelativeToolTip": "src\\AESEncryption.cs",
               "ViewState": "AgIAAD0AAAAAAAAAAAAQwB8AAABJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-25T11:50:22.096Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-25T11:50:22.096Z"
             },
             {
               "$type": "Document",
@@ -107,8 +106,7 @@
               "RelativeToolTip": "src\\EnryptionHelper.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAABRAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-25T11:50:16.839Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-25T11:50:16.839Z"
             },
             {
               "$type": "Document",
@@ -120,8 +118,7 @@
               "RelativeToolTip": "src\\MessageEncoder.cs",
               "ViewState": "AgIAABwAAAAAAAAAAAAAwOMAAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-25T11:50:15.329Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-25T11:50:15.329Z"
             },
             {
               "$type": "Document",
@@ -129,9 +126,9 @@
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\src\\Program.cs",
               "RelativeDocumentMoniker": "src\\Program.cs",
-              "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\src\\Program.cs*",
-              "RelativeToolTip": "src\\Program.cs*",
-              "ViewState": "AgIAAGIAAAAAAAAAAAAowHMAAAAnAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\src\\Program.cs",
+              "RelativeToolTip": "src\\Program.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAwwCEAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-25T11:48:00.461Z",
               "EditorCaption": ""

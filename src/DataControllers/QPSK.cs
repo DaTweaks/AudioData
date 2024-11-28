@@ -40,13 +40,13 @@ namespace AudioData.DataControllers
 
         public QPSK()
         {
-            modulators.Add("00", 1);
-            modulators.Add("01", (Math.PI / 2));
-            modulators.Add("10", Math.PI);
-            modulators.Add("11", (3 * Math.PI / 2));
+            modulators.Add("00", 1000);
+            modulators.Add("01", 2000);
+            modulators.Add("10", 3000);
+            modulators.Add("11", 4000);
         }
 
-        private Dictionary<string, double> modulators = new Dictionary<string, double>();
+        private Dictionary<string, int> modulators = new Dictionary<string, int>();
 
         #region Audio
 
@@ -66,7 +66,7 @@ namespace AudioData.DataControllers
             {
                 string bitpair = (data[i] == true ? "1" : "0") + (data[i+1] == true ? "1" : "0"); // Could make it a bit better than using strings here.
 
-                double frequency = modulators[bitpair]*BaseFrequency;
+                double frequency = modulators[bitpair];
 
                 for (int j = 0; j < samplesPerBit; j++)
                 {
@@ -102,7 +102,7 @@ namespace AudioData.DataControllers
 
             foreach(var kvp in modulators)
             {
-                var tempPower = Goertzel(samples, BaseFrequency * kvp.Value, SampleRate);
+                var tempPower = Goertzel(samples, kvp.Value, SampleRate);
                 if (tempPower > power)
                 {
                     bestGuess = kvp.Key;
