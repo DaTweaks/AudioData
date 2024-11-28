@@ -37,7 +37,6 @@ namespace AudioData.DataControllers
         /// <param name="text">data to be converted.</param>
         /// <returns>Array of 8 bit pairs.</returns>
         public bool[] StringToBinary(string text)
-
         {
             // Initialize a list to store the boolean values
             List<bool> boolList = new List<bool>();
@@ -86,7 +85,12 @@ namespace AudioData.DataControllers
             return sb.ToString();
         }
 
-        public abstract bool[] DecodeAudioToData(string fileName, int SampleRate);
+        public abstract string GetName();
+
+        public bool[] DecodeAudioToData(string fileName, int SampleRate)
+        {
+            return DecodeAudioToData(LoadAudioFromFile(fileName), SampleRate);
+        }
 
         public abstract bool[] DecodeAudioToData(float[] audioData, int SampleRate);
 
@@ -187,6 +191,26 @@ namespace AudioData.DataControllers
             return fileName;
         }
 
+        public double Goertzel(float[] samples, double targetFrequency, int SampleRate)
+        {
+            int N = samples.Length;
+            double k = (int)(0.5 + N * targetFrequency / SampleRate);
+            double omega = 2.0 * Math.PI * k / N;
+            double sine = Math.Sin(omega);
+            double cosine = Math.Cos(omega);
+            double coeff = 2.0 * cosine;
+            double q0 = 0, q1 = 0, q2 = 0;
+
+            for (int i = 0; i < N; i++)
+            {
+                q0 = coeff * q1 - q2 + samples[i];
+                q2 = q1;
+                q1 = q0;
+            }
+
+            return Math.Sqrt(q1 * q1 + q2 * q2 - q1 * q2 * coeff);
+        }
+
         public float[] LoadAudioFromFile(string fileName)
         {
             using (var reader = new AudioFileReader(fileName))
@@ -195,6 +219,137 @@ namespace AudioData.DataControllers
                 reader.Read(audioData, 0, audioData.Length);
                 return audioData;
             }
+        }
+
+        /// <summary>
+        /// Removes the handshake that occurs before the transmission. and all bits that occur before it.
+        /// </summary>
+        /// <returns>Updated data that starts when the data starts.</returns>
+        public bool[] RemoveBeforeHandShake(bool[] input)
+        {
+            var handshake = GenerateStartHandshake();
+            var EncodedHandshake = GenerateStartHandshakeEncoded();
+            int handshakeLength = EncodedHandshake.Length;
+            int inputLength = input.Length;
+
+            // Iterate through the input array to find the handshake pattern, starting from the end
+            for (int i = 0; i <= inputLength - handshakeLength; i++)
+            {
+                var tempArray = new bool[handshakeLength];
+                Array.Copy(input, i, tempArray, 0, handshakeLength);
+
+                bool[] output = new bool[0];
+
+                try
+                {
+                    output = MessageEncoder.GroupDecode(tempArray, 8);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (output.Length == 0)
+                {
+                    continue;
+                }
+
+                bool isMatch = true;
+                for (int j = 0; j < output.Length; j++)
+                {
+                    if (output[j] != handshake[j])
+                    {
+                        isMatch = false;
+                        break;
+                    }
+                }
+
+                // If the handshake pattern is found, return the array up to the start of the handshake
+                if (isMatch)
+                {
+                    int newLength = inputLength - (i + handshakeLength);
+                    bool[] result = new bool[newLength];
+                    Array.Copy(input, i + handshakeLength, result, 0, newLength);
+                    return result;
+                }
+            }
+            // If no handshake pattern is found, return a empty array.
+            return new bool[0];
+        }
+
+        /// <summary>
+        /// Removes the handshake that occurs at the end of the transmission and all bits that occur after it.
+        /// </summary>
+        /// <returns>All the data that was sent before the handshake</returns>
+        public bool[] RemoveAfterHandShake(bool[] input)
+        {
+            var handshake = GenerateEndHandshake();
+            var EncodedHandshake = GenerateEndHandshakeEncoded();
+            int handshakeLength = EncodedHandshake.Length;
+            int inputLength = input.Length;
+
+            // Iterate through the input array to find the handshake pattern, starting from the end
+            for (int i = inputLength - handshakeLength; i >= 0; i--)
+            {
+                var tempArray = new bool[handshakeLength];
+                Array.Copy(input, i, tempArray, 0, handshakeLength);
+
+                bool[] output = new bool[0];
+
+                try
+                {
+                    output = MessageEncoder.GroupDecode(tempArray, 8);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (output.Length == 0)
+                {
+                    continue;
+                }
+
+                bool isMatch = true;
+                for (int j = 0; j < output.Length; j++)
+                {
+                    if (output[j] != handshake[j])
+                    {
+                        isMatch = false;
+                        break;
+                    }
+                }
+
+                // If the handshake pattern is found, return the array up to the start of the handshake
+                if (isMatch)
+                {
+                    bool[] result = new bool[i];
+                    Array.Copy(input, result, i);
+                    return result;
+                }
+            }
+            // If no handshake pattern is found, return a empty array.
+            return new bool[0];
+        }
+
+        public bool[] GenerateStartHandshake()
+        {
+            return StringToBinary("S\u0002");
+        }
+
+        public bool[] GenerateStartHandshakeEncoded()
+        {
+            return MessageEncoder.GroupEncode(GenerateStartHandshake(), 8);
+        }
+
+        public bool[] GenerateEndHandshake()
+        {
+            return StringToBinary("\u0003E");
+        }
+
+        public bool[] GenerateEndHandshakeEncoded()
+        {
+            return MessageEncoder.GroupEncode(GenerateEndHandshake(), 8);
         }
 
         #endregion

@@ -24,80 +24,42 @@ using AudioData;
 using AudioData.DataControllers;
 using NAudio.Wave;
 using Spectrogram;
+using System.Drawing.Imaging;
+using System.Drawing;
 
 class Program
 {
     static void Main(string[] args)
     {
-        sINGLE();
+        SingleTest(new QPSK());
     }
 
     #region HammingEncoder
 
     static void TestHamming() // EXAMPLE USAGE OF HAMMING ENCODER!
     {
-        string input = "10110110";
+        string input = "10110110"; // NOTE: This only works with multiples of 4 and 8. otherwise it doesnt work.
         Console.WriteLine(input);
 
-        var encoded = MessageEncoder.GroupDecode(Helpers.prettyStringToBoolArray(input), input.Length);
+        var encoded = MessageEncoder.GroupDecode(Helpers.prettyStringToBoolArray(input), 8);
 
         Console.WriteLine(Helpers.boolArrayToPrettyString(encoded));
         MessageEncoder.MixinRandomError(encoded, 1);
 
-        Console.WriteLine(Helpers.boolArrayToPrettyString(MessageEncoder.GroupDecode(encoded, input.Length)));
+        Console.WriteLine(Helpers.boolArrayToPrettyString(MessageEncoder.GroupDecode(encoded, 8)));
     }
 
     #endregion
-
-    #region QPSK
-
-    public static void TestQPSK() 
-    {
-        int SampleRate = 44100;
-
-        var datacontrol = new QPSK();
-
-        string encryptionKey = "hemligtLösenord";
-
-        string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
-
-        Console.WriteLine($"Modulating Data: {data}");
-
-        var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
-
-        var binary = datacontrol.StringToBinary(encryptedData);
-
-        var audioData = datacontrol.EncodeDataToAudio(binary, 0f, SampleRate);
-
-        //datacontrol.PlayAudio(datacontrol.SaveAudioToFile(audioData, "QPSK.wav", SampleRate));
-
-        datacontrol.SaveAudioToFile(audioData, "OUTPUT.wav", SampleRate);
-
-        GenerateSpectrogram(audioData, SampleRate, "QPSK.png");
-
-        var editedBinary = datacontrol.DecodeAudioToData(audioData, SampleRate);
-
-        var dataConvertedData = AESEncryption.DecryptString(datacontrol.BinaryToString(editedBinary), encryptionKey);
-
-        Console.WriteLine($"Demodulated data: {dataConvertedData} Correct Demodulation: {dataConvertedData == data}");
-
-        Console.ReadKey();
-    }
-
-    #endregion
-
-    #region FSK
 
     public static Dictionary<float, float> totalTries = new Dictionary<float, float>();
 
     public static List<bool> tries = new List<bool>();
 
-    public static void UnitTestFSK()
+    public static void UnitTestModulation(DataControl dataControl)
     {
         int SampleRate = 192000;
-        float  startingNoiseValue = 2.4f;
+        float  startingNoiseValue = 0f;
         Thread thread = new Thread(updateTries);
-        var datacontrol = new FSK();
         thread.Start();
         while (totalTries.Count != 70)
         {
@@ -107,7 +69,7 @@ class Program
 
             var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
 
-            var binary = datacontrol.StringToBinary(encryptedData);
+            var binary = dataControl.StringToBinary(encryptedData);
 
             if (tries.Count >= 100)
             {
@@ -120,11 +82,11 @@ class Program
 
             binary = MessageEncoder.GroupEncode(binary, 8);
 
-            var audioData = datacontrol.EncodeDataToAudio(binary, startingNoiseValue, SampleRate);
+            var audioData = dataControl.EncodeDataToAudio(binary, startingNoiseValue, SampleRate);
 
-            var editedBinary = datacontrol.DecodeAudioToData(audioData, SampleRate);
+            var editedBinary = dataControl.DecodeAudioToData(audioData, SampleRate);
 
-            var dataConvertedData = AESEncryption.DecryptString(datacontrol.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+            var dataConvertedData = AESEncryption.DecryptString(dataControl.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
 
             tries.Add(dataConvertedData == data);
         }
@@ -148,57 +110,29 @@ class Program
         // WHICH SAVES THE FIRST AND THE LAST NUMBER.
     }
 
-    public static void TestFSK()
+    public static void SingleTest(DataControl controller)
     {
         int SampleRate = 192000;
-        float startingNoiseValue = 3f;
-        Thread thread = new Thread(updateTries);
-        var datacontrol = new FSK();
-        thread.Start();
-        while (true)
-        {
-            string encryptionKey = "hemligtLösenord";
-
-            string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
-
-            var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
-
-            var binary = datacontrol.StringToBinary(encryptedData);
-
-            binary = MessageEncoder.GroupEncode(binary, 8);
-
-            var audioData = datacontrol.EncodeDataToAudio(binary, startingNoiseValue, SampleRate);
-
-            var editedBinary = datacontrol.DecodeAudioToData(audioData, SampleRate);
-
-            var dataConvertedData = AESEncryption.DecryptString(datacontrol.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
-
-            tries.Add(dataConvertedData == data);
-        }
-    }
-
-    public static void SingleTestFSK()
-    {
-        int SampleRate = 192000;
-        float startingNoiseValue = 3f;
-        var datacontrol = new FSK();
+        float startingNoiseValue = 0f;
         string encryptionKey = "hemligtLösenord";
 
         string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
 
         var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
 
-        var binary = datacontrol.StringToBinary(encryptedData);
+        var binary = controller.StringToBinary(encryptedData);
 
         binary = MessageEncoder.GroupEncode(binary, 8);
 
-        var audioData = datacontrol.EncodeDataToAudio(binary, startingNoiseValue, SampleRate);
+        var audioData = controller.EncodeDataToAudio(binary, startingNoiseValue, SampleRate);
 
-        GenerateSpectrogram(audioData, SampleRate, "FSK.png");
+        GenerateSpectrogram(controller.SaveAudioToFile(audioData, controller.GetName()+".wav", SampleRate), SampleRate, controller.GetName()+ ".png");
 
-        var editedBinary = datacontrol.DecodeAudioToData(audioData, SampleRate);
+        var editedBinary = controller.DecodeAudioToData(audioData, SampleRate);
 
-        var dataConvertedData = AESEncryption.DecryptString(datacontrol.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+        var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+        Console.WriteLine("Original Message: "+data);
+        Console.WriteLine("Demodulated Message: "+dataConvertedData);
 
         tries.Add(dataConvertedData == data);
     }
@@ -236,24 +170,29 @@ class Program
 
         return succeeded;
     }
-
-    #endregion
-
     #region Utils
 
-    public static void GenerateSpectrogram(float[] data, int SampleRate, string name)
+    public static void GenerateSpectrogram(string audioFile, int SampleRate, string name) // CANNOT GET THIS TO WORK FOR SOME REASON!
     {
-        var sg = new SpectrogramGenerator(SampleRate, fftSize: 4096, stepSize: 500, maxFreq: 4000);
-
-        double[] doubleData = new double[data.Length];
-
-        for(int i = 0; i < data.Length; i++)
-        {
-            doubleData[i] = data[i];
-        }
-
-        sg.Add(doubleData);
+        (double[] audio, int sampleRate) = ReadMono(audioFile);
+        var sg = new SpectrogramGenerator(sampleRate, fftSize: 4096, stepSize: 250, maxFreq: 6000);
+        sg.Add(audio);
         sg.SaveImage(name);
+    }
+
+    static (double[] audio, int sampleRate) ReadMono(string filePath, double multiplier = 16_000)
+    {
+        using var afr = new NAudio.Wave.AudioFileReader(filePath);
+        int sampleRate = afr.WaveFormat.SampleRate;
+        int bytesPerSample = afr.WaveFormat.BitsPerSample / 8;
+        int sampleCount = (int)(afr.Length / bytesPerSample);
+        int channelCount = afr.WaveFormat.Channels;
+        var audio = new List<double>(sampleCount);
+        var buffer = new float[sampleRate * channelCount];
+        int samplesRead = 0;
+        while ((samplesRead = afr.Read(buffer, 0, buffer.Length)) > 0)
+            audio.AddRange(buffer.Take(samplesRead).Select(x => x * multiplier));
+        return (audio.ToArray(), sampleRate);
     }
 
     #endregion

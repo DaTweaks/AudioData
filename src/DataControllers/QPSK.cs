@@ -26,61 +26,93 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AudioData.DataControllers
 {
     public class QPSK : DataControl
     {
-        private const double BitDuration = 0.1; // Example value, adjust as needed
-        private const double CarrierFrequency = 1000; // Example value, adjust as needed
-        private static readonly double[] Phases = { 0, Math.PI / 2, Math.PI, 3 * Math.PI / 2 };
+        const double BPS = 80;
+        const double BitDuration = 1.0 / BPS; // seconds
+        const double BaseFrequency = 1000; // Frequency for binary 0
 
-        public override bool[] DecodeAudioToData(string fileName, int SampleRate)
+        public override string GetName() => "QPSK   -   Quadrature Shift Keying";
+
+        public QPSK()
         {
-            // Load audio data from file
-            float[] audioData = LoadAudioFromFile(fileName);
-            return DecodeAudioToData(audioData, SampleRate);
+            modulators.Add("00", 1);
+            modulators.Add("01", (Math.PI / 2));
+            modulators.Add("10", Math.PI);
+            modulators.Add("11", (3 * Math.PI / 2));
+        }
+
+        private Dictionary<string, double> modulators = new Dictionary<string, double>();
+
+        #region Audio
+
+        public override float[] EncodeDataToAudio(bool[] data, float noise, int SampleRate)
+        {
+            data = GenerateStartHandshakeEncoded()
+           .Concat(data)
+           .Concat(GenerateEndHandshakeEncoded())
+           .ToArray();
+
+            int samplesPerBit = (int)(SampleRate * BitDuration);
+
+            float[] audioData = new float[(data.Length * samplesPerBit)];
+
+
+            for (int i = 0; i < data.Length; i += 2)
+            {
+                string bitpair = (data[i] == true ? "1" : "0") + (data[i+1] == true ? "1" : "0"); // Could make it a bit better than using strings here.
+
+                double frequency = modulators[bitpair]*BaseFrequency;
+
+                for (int j = 0; j < samplesPerBit; j++)
+                {
+                    double t = (double)j / SampleRate;
+                    audioData[i * samplesPerBit + j] = (float)Math.Sin(2 * Math.PI * frequency * t);
+                }
+            }
+
+            //var list = PadArrayWithZeros(audioData, 50000);
+
+            return AddNoise(audioData, noise); // Should give like a 50% chance of it coming through completely fine. Will rework encoder.
         }
 
         public override bool[] DecodeAudioToData(float[] audioData, int SampleRate)
         {
-            int samplesPerSymbol = (int)(SampleRate * BitDuration);
-            List<bool> dataList = new List<bool>();
+            // Calculate where the bits will be placed.
+            int samplesPerBit = (int)(SampleRate * BitDuration);
 
-            for (int i = 0; i < audioData.Length; i += samplesPerSymbol)
+            string decodedStringData = "";
+            for (int i = 0; i < audioData.Length; i += samplesPerBit)
             {
-                float[] symbol = audioData.Skip(i).Take(samplesPerSymbol).ToArray();
-                double phase = Math.Atan2(symbol.Sum(y => Math.Sin(2 * Math.PI * CarrierFrequency * (y / SampleRate))),
-                                           symbol.Sum(y => Math.Cos(2 * Math.PI * CarrierFrequency * (y / SampleRate))));
-
-                int phaseIndex = Array.IndexOf(Phases, Phases.OrderBy(p => Math.Abs(p - phase)).First());
-                dataList.AddRange(Convert.ToString(phaseIndex, 2).PadLeft(2, '0').Select(bit => bit == '1'));
+                float[] bitData = audioData.Skip(i).Take(samplesPerBit).ToArray();
+                decodedStringData += DetectFrequency(bitData, SampleRate);
             }
 
-            return dataList.ToArray();
+            return RemoveBeforeHandShake(RemoveAfterHandShake(Helpers.prettyStringToBoolArray(decodedStringData)));
         }
 
-        public override float[] EncodeDataToAudio(bool[] data, float noise, int SampleRate)
+        private string DetectFrequency(float[] samples, int SampleRate)
         {
-            int samplesPerSymbol = (int)(SampleRate * BitDuration);
-            List<float> audioData = new List<float>();
+            string bestGuess = "";
+            double power = 0.0;
 
-            for (int i = 0; i < data.Length; i += 2)
+            foreach(var kvp in modulators)
             {
-                string bitPair = new string(data.Skip(i).Take(2).Select(bit => bit ? '1' : '0').ToArray());
-                int phaseIndex = Convert.ToInt32(bitPair, 2);
-                double phase = Phases[phaseIndex];
-
-                for (int j = 0; j < samplesPerSymbol; j++)
+                var tempPower = Goertzel(samples, BaseFrequency * kvp.Value, SampleRate);
+                if (tempPower > power)
                 {
-                    double t = (double)j / SampleRate;
-                    audioData.Add((float)(Math.Cos(2 * Math.PI * CarrierFrequency * t + phase)));
+                    bestGuess = kvp.Key;
+                    power = tempPower;
                 }
             }
 
-            // Convert to float array and add noise
-            float[] audioArray = audioData.ToArray();
-            return AddNoise(audioArray, noise);
+            return bestGuess;
         }
+
+        #endregion
     }
 }
