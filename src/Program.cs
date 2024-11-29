@@ -126,10 +126,16 @@ class Program
 
         var audioData = controller.EncodeDataToAudio(binary, startingNoiseValue, SampleRate);
 
-        GenerateSpectrogram(controller.SaveAudioToFile(audioData, controller.GetName()+".wav", SampleRate), SampleRate, controller.GetName()+ ".png");
+        var filespace = controller.SaveAudioToFile(audioData, controller.GetName() + ".wav", SampleRate);
+
+        GenerateSpectrogram(filespace, SampleRate, controller.GetName()+ ".png");
+
+        //controller.PlayAudio(filespace);
 
         var editedBinary = controller.DecodeAudioToData(audioData, SampleRate);
-
+        
+        Console.WriteLine("ModulatedBits:   "+ Helpers.boolArrayToPrettyString(binary));
+        
         var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
         Console.WriteLine("Original Message: "+data);
         Console.WriteLine("Demodulated Message: "+dataConvertedData);

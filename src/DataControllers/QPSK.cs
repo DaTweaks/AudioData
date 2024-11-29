@@ -34,19 +34,19 @@ namespace AudioData.DataControllers
     {
         const double BPS = 80;
         const double BitDuration = 1.0 / BPS; // seconds
-        const double BaseFrequency = 1000; // Frequency for binary 0
+        const double CarrierFrequency = 1000; // Frequency for binary 0
 
         public override string GetName() => "QPSK   -   Quadrature Shift Keying";
 
         public QPSK()
         {
-            modulators.Add("00", 1000);
-            modulators.Add("01", 2000);
-            modulators.Add("10", 3000);
-            modulators.Add("11", 4000);
+            modulators.Add("00", Math.PI/4); // Not really QPSK.
+            modulators.Add("01", 3 * (Math.PI/4));
+            modulators.Add("10", 5 * (Math.PI / 4));
+            modulators.Add("11", 7 * (Math.PI / 4));
         }
 
-        private Dictionary<string, int> modulators = new Dictionary<string, int>();
+        private Dictionary<string, double> modulators = new Dictionary<string, double>();
 
         #region Audio
 
@@ -59,25 +59,31 @@ namespace AudioData.DataControllers
 
             int samplesPerBit = (int)(SampleRate * BitDuration);
 
-            float[] audioData = new float[(data.Length * samplesPerBit)];
+            float[] audioData = new float[(data.Length/2 * samplesPerBit)];
 
+            List<double> frequecies = new List<double>();
 
             for (int i = 0; i < data.Length; i += 2)
             {
                 string bitpair = (data[i] == true ? "1" : "0") + (data[i+1] == true ? "1" : "0"); // Could make it a bit better than using strings here.
 
-                double frequency = modulators[bitpair];
+                frequecies.Add(CarrierFrequency*modulators[bitpair]);
 
+                //Console.WriteLine("Modulating Frequency! it is at: " + bitpair);
+            }
+
+            for(int i = 0; i < frequecies.Count; i++)
+            {
                 for (int j = 0; j < samplesPerBit; j++)
                 {
                     double t = (double)j / SampleRate;
-                    audioData[i * samplesPerBit + j] = (float)Math.Sin(2 * Math.PI * frequency * t);
+                    audioData[i * samplesPerBit + j] = (float)Math.Sin(2 * Math.PI * frequecies[i] * t);
                 }
             }
 
-            //var list = PadArrayWithZeros(audioData, 50000);
+            var list = PadArrayWithZeros(audioData, 50000);
 
-            return AddNoise(audioData, noise); // Should give like a 50% chance of it coming through completely fine. Will rework encoder.
+            return AddNoise(list, noise); // Should give like a 50% chance of it coming through completely fine. Will rework encoder.
         }
 
         public override bool[] DecodeAudioToData(float[] audioData, int SampleRate)
@@ -91,25 +97,28 @@ namespace AudioData.DataControllers
                 float[] bitData = audioData.Skip(i).Take(samplesPerBit).ToArray();
                 decodedStringData += DetectFrequency(bitData, SampleRate);
             }
-
+            Console.WriteLine("DeModulatedBits: " + decodedStringData);
             return RemoveBeforeHandShake(RemoveAfterHandShake(Helpers.prettyStringToBoolArray(decodedStringData)));
         }
 
         private string DetectFrequency(float[] samples, int SampleRate)
         {
-            string bestGuess = "";
+            string bestGuess = "00";
             double power = 0.0;
+
+            Console.WriteLine("Detecting Frequency!");
 
             foreach(var kvp in modulators)
             {
-                var tempPower = Goertzel(samples, kvp.Value, SampleRate);
+                var tempPower = Goertzel(samples, kvp.Value*CarrierFrequency, SampleRate);
+                Console.WriteLine(kvp.Key+" Power: "+tempPower);
                 if (tempPower > power)
                 {
                     bestGuess = kvp.Key;
                     power = tempPower;
                 }
             }
-
+            Console.WriteLine(bestGuess+" has won!");
             return bestGuess;
         }
 

@@ -38,8 +38,6 @@ namespace AudioData.DataControllers
 
         public override string GetName() => "FSK    -   Frequency Shift Keying";
 
-        #region Audio
-
         public override float[] EncodeDataToAudio(bool[] data, float noise, int SampleRate)
         {
             data = GenerateStartHandshakeEncoded()
@@ -61,9 +59,9 @@ namespace AudioData.DataControllers
                 }
             }
 
-            //var list = PadArrayWithZeros(audioData, 50000);
+            var list = PadArrayWithZeros(audioData, 50000);
 
-            return AddNoise(audioData, noise); // Should give like a 50% chance of it coming through completely fine. Will rework encoder.
+            return AddNoise(list, noise); // Should give like a 50% chance of it coming through completely fine. Will rework encoder.
         }
         
         public override bool[] DecodeAudioToData(float[] audioData, int SampleRate)
@@ -79,6 +77,8 @@ namespace AudioData.DataControllers
                 decodedStringData.Add(frequency == Frequency0 ? false : true);
             }
 
+            Console.WriteLine("Demodulated Data: "+Helpers.boolArrayToPrettyString(decodedStringData.ToArray()));
+
             return RemoveBeforeHandShake(RemoveAfterHandShake(decodedStringData.ToArray()));
         }
 
@@ -89,7 +89,5 @@ namespace AudioData.DataControllers
 
             return power0 > power1 ? Frequency0 : Frequency1;
         }
-
-        #endregion
     }
 }
