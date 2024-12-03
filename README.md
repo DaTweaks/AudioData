@@ -1,7 +1,7 @@
 # AudioData C#
 ## Features
 * Converting String into Audio.
-* Hamming codes that supports 8 bits.
+* Hamming codes that supports 8 or 4 bits.
 * Converting string into 8 bit arrays.
 * Converting 8 bit arrays into a string.
 * Handshakes to determine where data starts. (is kinda crucial for doing it cross devices)
