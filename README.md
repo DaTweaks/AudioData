@@ -11,7 +11,7 @@ The FSK algoritm is really robust.
 i've got a noise level generator that basically adds amplitude to the input audio and tests it.
 
 this is how the curve of successrate looks like:
-![FSK GRAPH](Pictures/FSK.png)
+![FSK GRAPH](bin/Debug/net8.0/FSK - Frequency Shift Keying/FSK_Trendline.png)
 
 ## QPSK
 
