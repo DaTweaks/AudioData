@@ -59,7 +59,7 @@ class Program
     {
         int SampleRate = 192000;
         Thread thread = new Thread(updateTries);
-        CreateFolder(dataControl.GetFullName());
+        CreateFolder(dataControl.GetName());
         thread.Start();
         while (totalTries.Count != 70)
         {
@@ -91,7 +91,7 @@ class Program
             tries.Add(dataConvertedData == data);
         }
 
-        string filePath = dataControl.GetFullName()+"/Data.txt";
+        string filePath = dataControl.GetName()+"/Data.txt";
 
         // Use StreamWriter to save the dictionary to a file
         using (StreamWriter writer = new StreamWriter(filePath))
@@ -108,7 +108,7 @@ class Program
 
     public static void SingleTest(DataControl controller, float noise)
     {
-        CreateFolder(controller.GetFullName());
+        CreateFolder(controller.GetName());
         int SampleRate = 192000;
         string encryptionKey = "hemligtLösenord";
 
@@ -122,9 +122,9 @@ class Program
 
         var audioData = controller.EncodeDataToAudio(binary, SampleRate, noise);
 
-        var filespace = controller.SaveAudioToFile(audioData, controller.GetFullName() + "/Audio.wav", SampleRate);
+        var filespace = controller.SaveAudioToFile(audioData, controller.GetName() + "/Audio.wav", SampleRate);
 
-        GenerateSpectrogram(filespace, SampleRate, controller.GetFullName()+ "/Spectrogram.png");
+        GenerateSpectrogram(filespace, SampleRate, controller.GetName()+ "/Spectrogram.png");
 
         //controller.PlayAudio(filespace);
 
