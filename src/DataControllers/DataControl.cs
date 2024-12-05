@@ -85,7 +85,10 @@ namespace AudioData.DataControllers
             return sb.ToString();
         }
 
+        public string GetFullName() => GetName() + " - " + GetDescription();
+
         public abstract string GetName();
+        public abstract string GetDescription();
 
         public bool[] DecodeAudioToData(string fileName, int SampleRate)
         {
@@ -149,7 +152,7 @@ namespace AudioData.DataControllers
             }
         }
 
-        public abstract float[] EncodeDataToAudio(bool[] data, float noise, int SampleRate);
+        public abstract float[] EncodeDataToAudio(bool[] data, int SampleRate, float noise = 0f);
 
         public float[] PadArrayWithZeros(float[] original, int paddingAmount)
         {
@@ -178,7 +181,7 @@ namespace AudioData.DataControllers
                     soundArray[i] = -1.0f;
             }
             return soundArray;
-        }
+        } // TODO: CHANGE INTO ADDITIVE GUASSIAN NOISE!
 
 
         /// <returns>the file name.</returns>
@@ -332,7 +335,7 @@ namespace AudioData.DataControllers
             return new bool[0];
         }
 
-        public bool[] GenerateStartHandshake()
+        private bool[] GenerateStartHandshake()
         {
             return StringToBinary("S\u0002");
         }
@@ -342,7 +345,7 @@ namespace AudioData.DataControllers
             return MessageEncoder.GroupEncode(GenerateStartHandshake(), 8);
         }
 
-        public bool[] GenerateEndHandshake()
+        private bool[] GenerateEndHandshake()
         {
             return StringToBinary("\u0003E");
         }

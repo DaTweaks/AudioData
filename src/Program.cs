@@ -31,7 +31,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        SingleTest(new FSK());
+        SingleTest(new QPSK(), 1f);
     }
 
     #region HammingEncoder
@@ -55,11 +55,11 @@ class Program
 
     public static List<bool> tries = new List<bool>();
 
-    public static void UnitTestModulation(DataControl dataControl)
+    public static void UnitTestModulation(DataControl dataControl, float startingNoise)
     {
         int SampleRate = 192000;
-        float  startingNoiseValue = 0f;
         Thread thread = new Thread(updateTries);
+        CreateFolder(dataControl.GetFullName());
         thread.Start();
         while (totalTries.Count != 70)
         {
@@ -74,15 +74,15 @@ class Program
             if (tries.Count >= 100)
             {
                 Console.SetCursorPosition(0, 1);
-                Console.Write($"Complete with noise level: {startingNoiseValue} Percent Calculated: {trypercent()}%                ");
-                totalTries.Add(startingNoiseValue, (float)trypercent());
+                Console.Write($"Complete with noise level: {startingNoise} Percent Calculated: {trypercent()}%                ");
+                totalTries.Add(startingNoise, (float)trypercent());
                 tries.Clear();
-                startingNoiseValue += 0.1f;
+                startingNoise += 0.1f;
             }
 
             binary = MessageEncoder.GroupEncode(binary, 8);
 
-            var audioData = dataControl.EncodeDataToAudio(binary, startingNoiseValue, SampleRate);
+            var audioData = dataControl.EncodeDataToAudio(binary, SampleRate, startingNoise);
 
             var editedBinary = dataControl.DecodeAudioToData(audioData, SampleRate);
 
@@ -91,7 +91,7 @@ class Program
             tries.Add(dataConvertedData == data);
         }
 
-        string filePath = "data.txt";
+        string filePath = dataControl.GetFullName()+"/Data.txt";
 
         // Use StreamWriter to save the dictionary to a file
         using (StreamWriter writer = new StreamWriter(filePath))
@@ -104,16 +104,12 @@ class Program
         }
 
         Console.WriteLine("DONE!");
-
-        //thread.Abort();
-
-        // WHICH SAVES THE FIRST AND THE LAST NUMBER.
     }
 
-    public static void SingleTest(DataControl controller)
+    public static void SingleTest(DataControl controller, float noise)
     {
+        CreateFolder(controller.GetFullName());
         int SampleRate = 192000;
-        float startingNoiseValue = 0f;
         string encryptionKey = "hemligtLösenord";
 
         string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
@@ -124,11 +120,11 @@ class Program
 
         binary = MessageEncoder.GroupEncode(binary, 8);
 
-        var audioData = controller.EncodeDataToAudio(binary, startingNoiseValue, SampleRate);
+        var audioData = controller.EncodeDataToAudio(binary, SampleRate, noise);
 
-        var filespace = controller.SaveAudioToFile(audioData, controller.GetName() + ".wav", SampleRate);
+        var filespace = controller.SaveAudioToFile(audioData, controller.GetFullName() + "/Audio.wav", SampleRate);
 
-        GenerateSpectrogram(filespace, SampleRate, controller.GetName()+ ".png");
+        GenerateSpectrogram(filespace, SampleRate, controller.GetFullName()+ "/Spectrogram.png");
 
         //controller.PlayAudio(filespace);
 
@@ -139,6 +135,8 @@ class Program
         var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
         Console.WriteLine("Original Message: "+data);
         Console.WriteLine("Demodulated Message: "+dataConvertedData);
+
+        Console.WriteLine("Duration: "+controller.GetWavFileDuration(filespace));
 
         tries.Add(dataConvertedData == data);
     }
@@ -178,10 +176,15 @@ class Program
     }
     #region Utils
 
+    public static void CreateFolder(string path)
+    {
+        Directory.CreateDirectory(path);
+    }
+
     public static void GenerateSpectrogram(string audioFile, int SampleRate, string name) // CANNOT GET THIS TO WORK FOR SOME REASON!
     {
         (double[] audio, int sampleRate) = ReadMono(audioFile);
-        var sg = new SpectrogramGenerator(sampleRate, fftSize: 4096, stepSize: 250, maxFreq: 6000);
+        var sg = new SpectrogramGenerator(sampleRate, fftSize: 4096, stepSize: 250, maxFreq: 8000);
         sg.Add(audio);
         sg.SaveImage(name);
     }

@@ -32,13 +32,14 @@ namespace AudioData.DataControllers
     public class FSK : DataControl
     {
         const double BPS = 80;
-        const double BitDuration = 1.0 / BPS; // seconds
+        const double BitDuration = 1.0 / BPS;
         const double Frequency0 = 1000; // Frequency for binary 0
         const double Frequency1 = 3000; // Frequency for binary 1
 
-        public override string GetName() => "FSK    -   Frequency Shift Keying";
+        public override string GetName() => "FSK";
+        public override string GetDescription() => "Frequency Shift Keying";
 
-        public override float[] EncodeDataToAudio(bool[] data, float noise, int SampleRate)
+        public override float[] EncodeDataToAudio(bool[] data, int SampleRate, float noise = 0f)
         {
             data = GenerateStartHandshakeEncoded()
            .Concat(data)
@@ -47,13 +48,17 @@ namespace AudioData.DataControllers
 
             int samplesPerBit = (int)(SampleRate * BitDuration);
 
-            float[] audioData = new float[(data.Length * samplesPerBit)];
+            float[] audioData = new float[data.Length * samplesPerBit];
 
+            // Iterate over each bit in the data array
             for (int i = 0; i < data.Length; i++)
             {
-                double frequency = data[i] == false ? Frequency0 : Frequency1;
+                double frequency = data[i] ? Frequency1 : Frequency0;  // Set frequency based on the bit value (true/false)
+
+                // For each sample in the current bit duration
                 for (int j = 0; j < samplesPerBit; j++)
                 {
+                    // Create the sine wave for the current sample
                     double t = (double)j / SampleRate;
                     audioData[i * samplesPerBit + j] = (float)Math.Sin(2 * Math.PI * frequency * t);
                 }
@@ -63,7 +68,7 @@ namespace AudioData.DataControllers
 
             return AddNoise(list, noise); // Should give like a 50% chance of it coming through completely fine. Will rework encoder.
         }
-        
+
         public override bool[] DecodeAudioToData(float[] audioData, int SampleRate)
         {
             // Calculate where the bits will be placed.
@@ -77,7 +82,7 @@ namespace AudioData.DataControllers
                 decodedStringData.Add(frequency == Frequency0 ? false : true);
             }
 
-            Console.WriteLine("Demodulated Data: "+Helpers.boolArrayToPrettyString(decodedStringData.ToArray()));
+            //Console.WriteLine("Demodulated Data: "+Helpers.boolArrayToPrettyString(decodedStringData.ToArray()));
 
             return RemoveBeforeHandShake(RemoveAfterHandShake(decodedStringData.ToArray()));
         }
@@ -86,7 +91,7 @@ namespace AudioData.DataControllers
         {
             double power0 = Goertzel(samples, Frequency0, SampleRate);
             double power1 = Goertzel(samples, Frequency1, SampleRate);
-
+            //Console.WriteLine("Bit0: " + power0 + " Bit1: " + power1);
             return power0 > power1 ? Frequency0 : Frequency1;
         }
     }
