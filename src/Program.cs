@@ -31,7 +31,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        SingleTest(new QPSK(), 1f);
+        UnitTestModulation(new FSK(), 0f);
     }
 
     #region HammingEncoder
