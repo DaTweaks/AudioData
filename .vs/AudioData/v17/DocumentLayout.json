@@ -3,20 +3,28 @@
   "WorkspaceRootPath": "C:\\Users\\david\\source\\repos\\AudioData\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\src\\datacontrollers\\qpsk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|solutionrelative:src\\datacontrollers\\qpsk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\audiodata.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|solutionrelative:audiodata.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\src\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|solutionrelative:src\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\david\\source\\repos\\AudioData\\obj\\Debug\\netcoreapp3.1\\AudioData.GlobalUsings.g.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:obj\\Debug\\netcoreapp3.1\\AudioData.GlobalUsings.g.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\src\\aesencryption.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|solutionrelative:src\\aesencryption.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\src\\messageencoder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|solutionrelative:src\\messageencoder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\src\\aesencryption.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|solutionrelative:src\\aesencryption.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\src\\datacontrollers\\qpsk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|solutionrelative:src\\datacontrollers\\qpsk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\src\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|solutionrelative:src\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{F359BADF-FF8B-4C0E-8940-0003A4187A22}|AudioData.csproj|c:\\users\\david\\source\\repos\\audiodata\\src\\datacontrollers\\datacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -38,7 +46,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -46,7 +54,32 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 1,
+              "Title": "AudioData.GlobalUsings.g.cs",
+              "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\obj\\Debug\\netcoreapp3.1\\AudioData.GlobalUsings.g.cs",
+              "RelativeDocumentMoniker": "obj\\Debug\\netcoreapp3.1\\AudioData.GlobalUsings.g.cs",
+              "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\obj\\Debug\\netcoreapp3.1\\AudioData.GlobalUsings.g.cs",
+              "RelativeToolTip": "obj\\Debug\\netcoreapp3.1\\AudioData.GlobalUsings.g.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-09T10:46:02.44Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AudioData",
+              "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\AudioData.csproj",
+              "RelativeDocumentMoniker": "AudioData.csproj",
+              "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\AudioData.csproj",
+              "RelativeToolTip": "AudioData.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-12-09T10:43:14.604Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "FSK.cs",
               "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\src\\DataControllers\\FSK.cs",
               "RelativeDocumentMoniker": "src\\DataControllers\\FSK.cs",
@@ -54,12 +87,11 @@
               "RelativeToolTip": "src\\DataControllers\\FSK.cs",
               "ViewState": "AgIAAB4AAAAAAAAAAAAAAEkAAABTAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-25T11:50:35.086Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-25T11:50:35.086Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "DataControl.cs",
               "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\src\\DataControllers\\DataControl.cs",
               "RelativeDocumentMoniker": "src\\DataControllers\\DataControl.cs",
@@ -67,38 +99,37 @@
               "RelativeToolTip": "src\\DataControllers\\DataControl.cs",
               "ViewState": "AgIAABsAAAAAAAAAAAAAAD0AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-25T11:50:29.784Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-25T11:50:29.784Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "AESEncryption.cs",
               "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\src\\AESEncryption.cs",
               "RelativeDocumentMoniker": "src\\AESEncryption.cs",
               "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\src\\AESEncryption.cs",
               "RelativeToolTip": "src\\AESEncryption.cs",
-              "ViewState": "AgIAAB0AAAAAAAAAAAAxwCYAAAB3AAAAAAAAAA==",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAmwBYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-25T11:50:22.096Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "MessageEncoder.cs",
               "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\src\\MessageEncoder.cs",
               "RelativeDocumentMoniker": "src\\MessageEncoder.cs",
               "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\src\\MessageEncoder.cs",
               "RelativeToolTip": "src\\MessageEncoder.cs",
-              "ViewState": "AgIAACQAAAAAAAAAAAAEwHIAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABgAAAAAAAAAAAAmwB0AAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-25T11:50:15.329Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 5,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\src\\Program.cs",
               "RelativeDocumentMoniker": "src\\Program.cs",
@@ -106,25 +137,24 @@
               "RelativeToolTip": "src\\Program.cs",
               "ViewState": "AgIAAIkAAAAAAAAAAAAgwKcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-25T11:48:00.461Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-25T11:48:00.461Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 4,
               "Title": "QPSK.cs",
               "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\src\\DataControllers\\QPSK.cs",
               "RelativeDocumentMoniker": "src\\DataControllers\\QPSK.cs",
               "ToolTip": "C:\\Users\\david\\source\\repos\\AudioData\\src\\DataControllers\\QPSK.cs",
               "RelativeToolTip": "src\\DataControllers\\QPSK.cs",
-              "ViewState": "AgIAAB4AAAAAAAAAAAAewGQAAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAmwBsAAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-25T13:45:44.004Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "README.md",
               "DocumentMoniker": "C:\\Users\\david\\source\\repos\\AudioData\\README.md",
               "RelativeDocumentMoniker": "README.md",
