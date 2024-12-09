@@ -1,6 +1,0 @@
-C:\Users\david\source\repos\AudioData\obj\Debug\netcoreapp3.1\AudioData.csproj.AssemblyReference.cache
-C:\Users\david\source\repos\AudioData\obj\Debug\netcoreapp3.1\AudioData.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\david\source\repos\AudioData\obj\Debug\netcoreapp3.1\AudioData.AssemblyInfoInputs.cache
-C:\Users\david\source\repos\AudioData\obj\Debug\netcoreapp3.1\AudioData.AssemblyInfo.cs
-C:\Users\david\source\repos\AudioData\obj\Debug\netcoreapp3.1\AudioData.csproj.CoreCompileInputs.cache
-C:\Users\david\source\repos\AudioData\obj\Debug\netcoreapp3.1\AudioData.sourcelink.json
