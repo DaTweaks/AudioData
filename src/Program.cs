@@ -191,7 +191,7 @@ class Program
     public static void GenerateSpectrogram(string audioFile, int SampleRate, string name) 
     {
         (double[] audio, int sampleRate) = ReadMono(audioFile);
-        var sg = new SpectrogramGenerator(sampleRate, fftSize: 4096, stepSize: 250, maxFreq: 8000);
+        var sg = new SpectrogramGenerator(sampleRate, fftSize: 4096, stepSize: 250, maxFreq: 10000);
         sg.Add(audio);
         sg.SaveImage(name);
     }
