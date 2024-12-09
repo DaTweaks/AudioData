@@ -55,6 +55,8 @@ class Program
 
     public static List<bool> tries = new List<bool>();
 
+
+    // Mass tests for when i want to test the capabilites of it.
     public static void UnitTestModulation(DataControl dataControl, float startingNoise, int tryCount, int totalTryCount)
     {
         totalTryCount++;
@@ -94,12 +96,12 @@ class Program
 
         string filePath = dataControl.GetName()+"/Data.txt";
 
-        // Use StreamWriter to save the dictionary to a file
+
+        // Write it into the data file.
         using (StreamWriter writer = new StreamWriter(filePath))
         {
             foreach (var kvp in totalTries)
             {
-                // Write the key and both float values to the file
                 writer.WriteLine($"NOISE: {kvp.Key}     -   {kvp.Value}%");
             }
         }
@@ -107,6 +109,8 @@ class Program
         Console.WriteLine("DONE!");
     }
 
+
+    // For single tests, when you dont want to loop it a 1000 times.
     public static void SingleTest(DataControl controller, float noise)
     {
         CreateFolder(controller.GetName());
@@ -176,6 +180,7 @@ class Program
 
         return succeeded;
     }
+
     #region Utils
 
     public static void CreateFolder(string path)

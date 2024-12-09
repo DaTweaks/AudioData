@@ -36,7 +36,7 @@ public class AESEncryption
 
         using (Aes aes = Aes.Create())
         {
-            aes.Key = Encoding.UTF8.GetBytes(password);
+            aes.Key = Encoding.UTF8.GetBytes(password); // Some passwords does not work. i need to bugfix that someday.
 
             aes.IV = iv;
 

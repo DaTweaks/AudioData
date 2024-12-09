@@ -72,11 +72,9 @@ namespace AudioData.DataControllers
                 string bitpair = (data[i] == true ? "1" : "0") + (data[i + 1] == true ? "1" : "0"); // Could make it a bit better than using strings here.
 
                 frequecies.Add(CarrierFrequency * modulators[bitpair]);
-
-                //Console.WriteLine("Modulating Frequency! it is at: " + bitpair);
             }
 
-            for (int i = 0; i < frequecies.Count; i++) // This is really flawed, between frequencies it 
+            for (int i = 0; i < frequecies.Count; i++)
             {
                 for (int j = 0; j < samplesPerBit; j++)
                 {
@@ -87,7 +85,7 @@ namespace AudioData.DataControllers
 
             var list = PadArrayWithZeros(audioData, 50000);
 
-            return AddNoise(list, noise); // Should give like a 50% chance of it coming through completely fine. Will rework encoder.
+            return AddNoise(list, noise);
         }
 
         public override bool[] DecodeAudioToData(float[] audioData, int SampleRate)
