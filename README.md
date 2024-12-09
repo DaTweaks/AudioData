@@ -14,6 +14,10 @@ i've got a noise level generator that basically adds amplitude to the input audi
 this is how the curve of successrate looks like:
 ![FSK GRAPH](bin/Debug/net8.0/FSK/FSK_Trendline.png)
 
+The spectrogram looks like this for FSK. where the higher frequency is 1 and lower 0.
+
+![FSK Spectrum](bin/Debug/net8.0/FSK/Spectrogram.png)
+
 ## QPSK
 
 The QPSK algoritm works really well.
@@ -23,6 +27,10 @@ The slight problem i have that both happens here and in FSK is that sometimes wh
 i will need to look into it.
 
 ![QPSK GRAPH](bin/Debug/net8.0/QPSK/QPSK_Trend.png)
+
+The spectrogram looks like this for QPSK. each of the four frequencies represent 00, 01. 10, 11.
+
+![QPSK Spectrum](bin/Debug/net8.0/QPSK/Spectrogram.png)
 
 ## TODO
 * Bug fixing QPSK Mod/Demod so it takes a minimum amount of time possible. Currently it takes ages!
