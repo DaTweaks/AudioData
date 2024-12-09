@@ -31,7 +31,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        SingleTest(new FSK(), 1f);
+        Console.WriteLine("Do you want to test FSK or QPSK?");
+        string input = Console.ReadLine().Trim().ToUpper();
+        if(input == "FSK")
+            SingleTest(new FSK(), 1f);
+        else if(input == "QPSK")
+            SingleTest(new QPSK(), 1f);
     }
 
     #region HammingEncoder
