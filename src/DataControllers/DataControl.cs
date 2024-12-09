@@ -33,6 +33,8 @@ namespace AudioData.DataControllers
     {
         public double GetBitDuration(int BPS) => 1.0 / BPS;
 
+        public abstract int GetBitsPerSecond();
+
         /// <param name="text">data to be converted.</param>
         /// <param name="text">data to be converted.</param>
         /// <returns>Array of 8 bit pairs.</returns>

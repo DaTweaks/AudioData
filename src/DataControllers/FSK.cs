@@ -36,6 +36,8 @@ namespace AudioData.DataControllers
         const double Frequency0 = 1000; // Frequency for binary 0
         const double Frequency1 = 3000; // Frequency for binary 1
 
+        public override int GetBitsPerSecond() => (int)BPS;
+
         public override string GetName() => "FSK";
         public override string GetDescription() => "Frequency Shift Keying";
 

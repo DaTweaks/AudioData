@@ -36,6 +36,8 @@ namespace AudioData.DataControllers
         const double BitDuration = 1.0 / BPS; // seconds
         const double CarrierFrequency = 1500;
 
+        public override int GetBitsPerSecond() => (int)BPS*2; // Account for it being double bits per frequency sent.
+
         public override string GetName() => "QPSK";
 
         public override string GetDescription() => "Quadrature Shift Keying";

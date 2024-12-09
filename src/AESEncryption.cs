@@ -37,6 +37,7 @@ public class AESEncryption
         using (Aes aes = Aes.Create())
         {
             aes.Key = Encoding.UTF8.GetBytes(password);
+
             aes.IV = iv;
 
             ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);

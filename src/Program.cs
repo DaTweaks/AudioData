@@ -31,7 +31,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        UnitTestModulation(new FSK(), 0f);
+        SingleTest(new QPSK(), 7f);
     }
 
     #region HammingEncoder
@@ -55,13 +55,14 @@ class Program
 
     public static List<bool> tries = new List<bool>();
 
-    public static void UnitTestModulation(DataControl dataControl, float startingNoise)
+    public static void UnitTestModulation(DataControl dataControl, float startingNoise, int tryCount, int totalTryCount)
     {
+        totalTryCount++;
         int SampleRate = 192000;
         Thread thread = new Thread(updateTries);
         CreateFolder(dataControl.GetName());
         thread.Start();
-        while (totalTries.Count != 70)
+        while (totalTries.Count <= totalTryCount)
         {
             string encryptionKey = "hemligtLösenord";
 
@@ -71,7 +72,7 @@ class Program
 
             var binary = dataControl.StringToBinary(encryptedData);
 
-            if (tries.Count >= 100)
+            if (tries.Count >= tryCount)
             {
                 Console.SetCursorPosition(0, 1);
                 Console.Write($"Complete with noise level: {startingNoise} Percent Calculated: {trypercent()}%                ");
@@ -110,13 +111,13 @@ class Program
     {
         CreateFolder(controller.GetName());
         int SampleRate = 192000;
-        string encryptionKey = "hemligtLösenord";
+        string encryptionKey = "HemligtLösenord";
 
-        string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
+        string data = "SINGLE TEST! DOES THIS WORK???";
 
         var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
 
-        var binary = controller.StringToBinary(encryptedData);
+        var binary = controller.StringToBinary(data);
 
         binary = MessageEncoder.GroupEncode(binary, 8);
 
@@ -131,8 +132,9 @@ class Program
         var editedBinary = controller.DecodeAudioToData(audioData, SampleRate);
         
         Console.WriteLine("ModulatedBits:   "+ Helpers.boolArrayToPrettyString(binary));
-        
+
         var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+
         Console.WriteLine("Original Message: "+data);
         Console.WriteLine("Demodulated Message: "+dataConvertedData);
 
@@ -181,7 +183,7 @@ class Program
         Directory.CreateDirectory(path);
     }
 
-    public static void GenerateSpectrogram(string audioFile, int SampleRate, string name) // CANNOT GET THIS TO WORK FOR SOME REASON!
+    public static void GenerateSpectrogram(string audioFile, int SampleRate, string name) 
     {
         (double[] audio, int sampleRate) = ReadMono(audioFile);
         var sg = new SpectrogramGenerator(sampleRate, fftSize: 4096, stepSize: 250, maxFreq: 8000);
