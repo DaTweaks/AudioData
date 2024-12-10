@@ -22,10 +22,6 @@
 
 using AudioData;
 using AudioData.DataControllers;
-using NAudio.Wave;
-using Spectrogram;
-using System.Drawing.Imaging;
-using System.Drawing;
 
 class Program
 {
@@ -46,12 +42,12 @@ class Program
         string input = "10110110"; // NOTE: This only works with multiples of 4 and 8. otherwise it doesnt work.
         Console.WriteLine(input);
 
-        var encoded = MessageEncoder.GroupDecode(Helpers.prettyStringToBoolArray(input), 8);
+        var encoded = MessageEncoder.GroupDecode(Helpers.PrettyStringToBoolArray(input), 8);
 
-        Console.WriteLine(Helpers.boolArrayToPrettyString(encoded));
+        Console.WriteLine(Helpers.BoolArrayToPrettyString(encoded));
         MessageEncoder.MixinRandomError(encoded, 1);
 
-        Console.WriteLine(Helpers.boolArrayToPrettyString(MessageEncoder.GroupDecode(encoded, 8)));
+        Console.WriteLine(Helpers.BoolArrayToPrettyString(MessageEncoder.GroupDecode(encoded, 8)));
     }
 
     #endregion
@@ -66,7 +62,7 @@ class Program
     {
         totalTryCount++;
         int SampleRate = 192000;
-        Thread thread = new Thread(updateTries);
+        Thread thread = new Thread(UpdateTries);
         CreateFolder(dataControl.GetName());
         thread.Start();
         while (totalTries.Count <= totalTryCount)
@@ -82,8 +78,8 @@ class Program
             if (tries.Count >= tryCount)
             {
                 Console.SetCursorPosition(0, 1);
-                Console.Write($"Complete with noise level: {startingNoise} Percent Calculated: {trypercent()}%                ");
-                totalTries.Add(startingNoise, (float)trypercent());
+                Console.Write($"Complete with noise level: {startingNoise} Percent Calculated: {TryPercent()}%                ");
+                totalTries.Add(startingNoise, (float)TryPercent());
                 tries.Clear();
                 startingNoise += 0.1f;
             }
@@ -140,7 +136,7 @@ class Program
 
         var editedBinary = controller.DecodeAudioToData(audioData, SampleRate);
         
-        Console.WriteLine("ModulatedBits:   "+ Helpers.boolArrayToPrettyString(binary));
+        Console.WriteLine("ModulatedBits:   "+ Helpers.BoolArrayToPrettyString(binary));
 
         var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
 
@@ -152,17 +148,17 @@ class Program
         tries.Add(dataConvertedData == data);
     }
 
-    public static void updateTries()
+    public static void UpdateTries()
     {
         while (true)
         {
             Thread.Sleep(10);
             Console.SetCursorPosition(0, 0);
-            Console.Write($"Tried this many times: {tries.Count} succeeded this many times: {GetSuccess()} SuccessPercent: {trypercent()}%                  ");
+            Console.Write($"Tried this many times: {tries.Count} succeeded this many times: {GetSuccess()} SuccessPercent: {TryPercent()}%                  ");
         }
     }
 
-    public static double trypercent()
+    public static double TryPercent()
     {
         int success = GetSuccess();
         if (success != 0 || tries.Count != 0)

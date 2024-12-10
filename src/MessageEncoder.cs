@@ -134,7 +134,7 @@ namespace AudioData
 
             // Calculate parity bits
             foreach (var parity in parityPositions)
-                encoded[parity] = Helpers.doXoringForPosition(encoded, length, parity);
+                encoded[parity] = Helpers.DoXoringForPosition(encoded, length, parity);
 
             return encoded;
         }
@@ -172,7 +172,7 @@ namespace AudioData
             {
                 if (Helpers.PowerOf2(i+1))
                 {
-                    syndrome += (Convert.ToInt32(Helpers.doXoringForPosition(encoded, encoded.Length, i) ^ encoded[i]) << j);
+                    syndrome += (Convert.ToInt32(Helpers.DoXoringForPosition(encoded, encoded.Length, i) ^ encoded[i]) << j);
                     j++;
                 }
             }
@@ -227,12 +227,12 @@ namespace AudioData
             return parityPositions.ToArray();
         }
 
-        public static System.String boolArrayToPrettyString(bool[] arr)
+        public static System.String BoolArrayToPrettyString(bool[] arr)
         {
             return System.String.Join("", arr.Select(x => Convert.ToInt32(x)));
         }
 
-        public static bool[] prettyStringToBoolArray(System.String s)
+        public static bool[] PrettyStringToBoolArray(System.String s)
         {
             return s.ToArray().Select(x => ((Convert.ToInt32(x) - 48) > 0)).ToArray();
         }
@@ -242,7 +242,7 @@ namespace AudioData
             return (x > 0) && ((x & (x - 1)) == 0);
         }
 
-        public static int[] getPositionsForXoring(int length, int currentHammingPosition)
+        public static int[] GetPositionsForXoring(int length, int currentHammingPosition)
         {
             var positions = new List<int>();
             for (int i = 1; i <= length; i++)
@@ -253,11 +253,11 @@ namespace AudioData
             return positions.ToArray();
         }
 
-        public static bool doXoringForPosition(bool[] vector, int length, int currentHammingPosition)
+        public static bool DoXoringForPosition(bool[] vector, int length, int currentHammingPosition)
         {
             try
             {
-                return getPositionsForXoring(length, currentHammingPosition)
+                return GetPositionsForXoring(length, currentHammingPosition)
                     .Select(x => vector[x - 1])
                     .Aggregate((x, y) => x ^ y);
             }
