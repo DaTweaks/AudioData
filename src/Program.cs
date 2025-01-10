@@ -22,17 +22,28 @@
 
 using AudioData;
 using AudioData.DataControllers;
+using Spectrogram;
+using System.Text;
 
 class Program
 {
     static void Main(string[] args)
     {
         Console.WriteLine("Do you want to test FSK or QPSK?");
+
         string input = Console.ReadLine().Trim().ToUpper();
-        if(input == "FSK")
-            SingleTest(new FSK(), 1f);
-        else if(input == "QPSK")
-            SingleTest(new QPSK(), 1f);
+
+        switch (input)
+        {
+            case "FSK":
+                SingleTestString(new FSK(), 6f);
+                break;
+            case "QPSK":
+                SingleTestString(new QPSK(), 5f);
+                break;
+        }
+
+
     }
 
     #region HammingEncoder
@@ -112,17 +123,14 @@ class Program
 
 
     // For single tests, when you dont want to loop it a 1000 times.
-    public static void SingleTest(DataControl controller, float noise)
+    public static void SingleTestByte(DataControl controller, float noise)
     {
         CreateFolder(controller.GetName());
         int SampleRate = 192000;
-        string encryptionKey = "HemligtLösenord";
 
-        string data = "SINGLE TEST! DOES THIS WORK???";
+        var message = new Message(1000, "YES! WOW!");
 
-        var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
-
-        var binary = controller.StringToBinary(data);
+        var binary = controller.SerializeToBinary(message);
 
         binary = MessageEncoder.GroupEncode(binary, 8);
 
@@ -138,12 +146,47 @@ class Program
         
         Console.WriteLine("ModulatedBits:   "+ Helpers.BoolArrayToPrettyString(binary));
 
-        var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+        var dataConvertedData = controller.DeserializeFromBinary<Message>(MessageEncoder.GroupDecode(editedBinary, 8));
 
-        Console.WriteLine("Original Message: "+data);
-        Console.WriteLine("Demodulated Message: "+dataConvertedData);
+        Console.WriteLine($"Original Message: Name: {message.Name} id: {message.Number}");
+        Console.WriteLine($"Demodulated Message: Name: {dataConvertedData.Name} id: {dataConvertedData.Number}");
 
         Console.WriteLine("Duration: "+controller.GetWavFileDuration(filespace));
+
+        tries.Add(dataConvertedData == message);
+    }
+
+    // For single tests, when you dont want to loop it a 1000 times.
+    public static void SingleTestString(DataControl controller, float noise, string data = "SINGLE TEST! DOES THIS WORK???")
+    {
+        CreateFolder(controller.GetName());
+        int SampleRate = 192000;
+        string encryptionKey = "HemligtLösenord";
+
+        var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
+
+        var binary = controller.StringToBinary(encryptedData);
+
+        binary = MessageEncoder.GroupEncode(binary, 8);
+
+        var audioData = controller.EncodeDataToAudio(binary, SampleRate, noise);
+
+        var filespace = controller.SaveAudioToFile(audioData, controller.GetName() + "/Audio.wav", SampleRate);
+
+        GenerateSpectrogram(filespace, SampleRate, controller.GetName()+ "/Spectrogram.png");
+
+        controller.PlayAudio(filespace);
+
+        var editedBinary = controller.DecodeAudioToData(audioData, SampleRate);
+
+        Console.WriteLine("ModulatedBits:   " + Helpers.BoolArrayToPrettyString(binary));
+
+        var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+
+        Console.WriteLine("Original Message: " + data);
+        Console.WriteLine("Demodulated Message: " + dataConvertedData);
+
+        Console.WriteLine("Duration: " + controller.GetWavFileDuration(filespace));
 
         tries.Add(dataConvertedData == data);
     }
@@ -189,7 +232,7 @@ class Program
         Directory.CreateDirectory(path);
     }
 
-    public static void GenerateSpectrogram(string audioFile, int SampleRate, string name) 
+    public static void GenerateSpectrogram(string audioFile, int SampleRate, string name)
     {
         (double[] audio, int sampleRate) = ReadMono(audioFile);
         var sg = new SpectrogramGenerator(sampleRate, fftSize: 4096, stepSize: 250, maxFreq: 10000);
@@ -212,5 +255,16 @@ class Program
         return (audio.ToArray(), sampleRate);
     }
 
+    public class Message
+    {
+        public int Number { get; set; }
+        public string Name { get; set; }
+
+        public Message(int number, string name)
+        {
+            Number = number;
+            Name = name;
+        }
+    }
     #endregion
 }

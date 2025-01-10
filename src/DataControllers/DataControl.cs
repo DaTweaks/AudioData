@@ -24,8 +24,12 @@ using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AudioData.DataControllers
 {
@@ -34,6 +38,8 @@ namespace AudioData.DataControllers
         public double GetBitDuration(int BPS) => 1.0 / BPS;
 
         public abstract int GetBitsPerSecond();
+
+        #region Converstion
 
         /// <param name="text">data to be converted.</param>
         /// <param name="text">data to be converted.</param>
@@ -87,17 +93,52 @@ namespace AudioData.DataControllers
             return sb.ToString();
         }
 
-        public string GetFullName() => GetName() + " - " + GetDescription();
-
-        public abstract string GetName();
-        public abstract string GetDescription();
-
-        public bool[] DecodeAudioToData(string fileName, int SampleRate)
+        public bool[] ConvertByteArrayToBinary(byte[] bytes)
         {
-            return DecodeAudioToData(LoadAudioFromFile(fileName), SampleRate);
+            bool[] output = new bool[bytes.Length*8];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                ConvertByteToBoolArray(bytes[i], output, i);
+            }
+
+            return output.ToArray();
         }
 
-        public abstract bool[] DecodeAudioToData(float[] audioData, int SampleRate);
+        public byte[] ConvertBinaryToByteArray(bool[] binary)
+        {
+            if (binary.Length % 8 != 0)
+            {
+                binary = MakeLengthMultipleOf(binary, 8);
+            }
+
+            byte[] list = new byte[binary.Length/8];
+
+            for (int i = 0; i < list.Length; i ++)
+            {
+                list[i] = ConvertBinaryToByte(binary, i*8);
+            }
+
+            return list;
+        }
+
+        private byte ConvertBinaryToByte(bool[] source, int index)
+        {
+            byte result = 0;
+
+            // Loop through the array
+            for (int i = 7 + index; i >= index; i--)
+                result = (byte)((result & ~((byte)1 << i)) | ((source[i] ? (byte)1 : (byte)0) << i));
+            
+
+            return result;
+        }
+
+        private void ConvertByteToBoolArray(byte b, bool[] binary, int index)
+        {
+            // check each bit in the byte. if 1 set to true, if 0 set to false
+            for (int i = 7+index; i >= index; i--)
+                binary[i] = (b & (1 << i)) != 0;
+        }
 
         public bool[] MakeLengthMultipleOf(bool[] boolArray, int multiple)
         {
@@ -118,6 +159,31 @@ namespace AudioData.DataControllers
 
             return adjustedArray;
         }
+
+        public bool[] SerializeToBinary(object obj)
+        {
+            return ConvertByteArrayToBinary(JsonSerializer.SerializeToUtf8Bytes(obj)); // Serialize to byte array
+        }
+
+        public T DeserializeFromBinary<T>(bool[] binary)
+        {
+            return JsonSerializer.Deserialize<T>(ConvertBinaryToByteArray(binary)); // Deserialize back from byte array
+        }
+
+        #endregion
+
+        public string GetFullName() => GetName() + " - " + GetDescription();
+
+        public abstract string GetName();
+
+        public abstract string GetDescription();
+
+        public bool[] DecodeAudioToData(string fileName, int SampleRate)
+        {
+            return DecodeAudioToData(LoadAudioFromFile(fileName), SampleRate);
+        }
+
+        public abstract bool[] DecodeAudioToData(float[] audioData, int SampleRate);
 
         #region Audio
 
@@ -336,6 +402,23 @@ namespace AudioData.DataControllers
             // If no handshake pattern is found, return a empty array.
             return new bool[0];
         }
+
+        public float[] GenerateTone(float[] input, int samplerate, int frequency)
+        {
+            if (input == null || input.Length == 0)
+                throw new ArgumentException("Input cannot be null or empty.");
+
+            float[] output = new float[input.Length];
+            double angularFrequency = 2 * Math.PI * frequency / samplerate;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                output[i] = input[i] + (float)(Math.Sin(i * angularFrequency));
+            }
+
+            return output;
+        }
+
 
         private bool[] GenerateStartHandshake()
         {

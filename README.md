@@ -18,6 +18,10 @@ The spectrogram looks like this for FSK. where the higher frequency is 1 and low
 
 ![FSK Spectrum](Pictures/FSK/Spectrogram.png)
 
+When you up the noise. You see this. This is noise level 6. This was a success.
+
+![FSK Spectrum Noise](Pictures/FSK/Spectrogram_NOISE.png)
+
 ## QPSK
 
 The QPSK algoritm works really well.
@@ -31,6 +35,10 @@ i will need to look into it.
 The spectrogram looks like this for QPSK. each of the four frequencies represent 00, 01. 10, 11.
 
 ![QPSK Spectrum](Pictures/QPSK/Spectrogram.png)
+
+When you up the noise. You see this. This is noise level 5. This was a success.
+
+![QPSK Spectrum Noise](Pictures/QPSK/Spectrogram_NOISE.png)
 
 ## TODO
 * Bug fixing QPSK Mod/Demod so it takes a minimum amount of time possible. Currently it takes ages!
