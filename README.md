@@ -48,4 +48,4 @@ When you up the noise. You see this. This is noise level 5. This was a success.
 * The higher the sample rate the more "noise" it can withstand.
 * Works across computers, Haven't tested higher BPS than 80 as per now
 
-## Created by David Hornemark, 2024
+## Created by David Hornemark, 2025
