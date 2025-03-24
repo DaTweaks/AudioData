@@ -35,11 +35,108 @@ namespace AudioData.DataControllers
 {
     public abstract class DataControl
     {
+        /// <summary>
+        /// Gets the time it sends each data bit. 
+        /// </summary>
         public double GetBitDuration(int BPS) => 1.0 / BPS;
 
+        /// <summary>
+        /// Gets how fast the program sends its data. (DO NOT USE FOR VITAL CALCULATIONS) USE GetBitDuration for this!
+        /// </summary>
         public abstract int GetBitsPerSecond();
 
-        #region Converstion
+        /// <summary>
+        /// Gets the full name which is the name and description with a " - " in the middle.
+        /// </summary>
+        public string GetFullName() => GetName() + " - " + GetDescription();
+
+        /// <summary>
+        /// Gets the name, usually shortened.
+        /// </summary>
+        public abstract string GetName();
+
+        /// <summary>
+        /// Gets the description, where it tells the full name of the modulation method.
+        /// </summary>
+        public abstract string GetDescription();
+
+        /// <summary>
+        /// demodulates the given audio to data.
+        /// </summary>
+        /// <param name="fileSpace">filespace of the given audio.</param>
+        /// <param name="sampleRate">sample rate of the program</param>
+        /// <returns>the data that is demodulated.</returns>
+        public bool[] DecodeAudioToData(string fileSpace, int sampleRate)
+        {
+            return DecodeAudioToData(LoadAudioFromFile(fileSpace), sampleRate);
+        }
+
+        /// <summary>
+        /// demodulates the given audio to data.
+        /// </summary>
+        /// <param name="audioData">audio to decode</param>
+        /// <param name="sampleRate">sample rate of the program</param>
+        /// <returns>the data that is demodulated.</returns>
+        public bool[] DecodeAudioToData(float[] audioData, int sampleRate)
+        {
+            int samplesPerBit = (int)(sampleRate * GetBitDuration(GetBitsPerSecond()));
+
+            bool[] bitdata = new bool[samplesPerBit];
+
+            for (int offset = 0; offset < samplesPerBit; offset++)
+            {
+                bitdata = DecodeAudio(audioData, sampleRate, offset);
+                if (bitdata.Length != 0)
+                    break;
+            }
+
+            return bitdata;
+        }
+
+        /// <summary>
+        /// demodulates the given audio to data.
+        /// </summary>
+        /// <param name="audioData">audio to decode</param>
+        /// <param name="sampleRate">sample rate of the program</param>
+        /// <returns>the data that is demodulated.</returns>
+        protected abstract bool[] DecodeAudio(float[] audioData, int sampleRate, int offset);
+
+        /// <summary>
+        /// Encodes the data into audio using the chosen modulation.
+        /// </summary>
+        /// <param name="data">the data to be modulated</param>
+        /// <param name="sampleRate"></param>
+        /// <param name="noise">the noise that will be applied.</param>
+        /// <returns>modulated sound</returns>
+        public abstract float[] EncodeDataToAudio(bool[] data, int sampleRate, float noise = 0f);
+
+        #region Bit Manipulation
+
+        /// <summary>
+        /// Makes the length of the bits a multiple to allow it to be decoded by the hamming encoder and binary to string converter.
+        /// </summary>
+        /// <param name="boolArray">the array of bits</param>
+        /// <param name="multiple">what multiple of bools you want. so with a multiple of 4, when you have 11, it gives you a length of 12.</param>
+        /// <returns></returns>
+        public bool[] MakeLengthMultipleOf(bool[] boolArray, int multiple)
+        {
+            int originalLength = boolArray.Length;
+            int newLength = originalLength;
+
+            // Calculate the new length that is a multiple of 8
+            while (newLength % multiple != 0)
+            {
+                newLength--;
+            }
+
+            // Create a new array with the adjusted length
+            bool[] adjustedArray = new bool[newLength];
+
+            // Copy elements from the original array to the adjusted array
+            Array.Copy(boolArray, adjustedArray, newLength);
+
+            return adjustedArray;
+        }
 
         /// <param name="text">data to be converted.</param>
         /// <param name="text">data to be converted.</param>
@@ -187,11 +284,15 @@ namespace AudioData.DataControllers
 
         #region Audio
 
-        public void PlayAudio(string fileName)
+        /// <summary>
+        /// Plays the given audiofile on the main speaker.
+        /// </summary>
+        /// <param name="fileSpace">the file to be played</param>
+        public void PlayAudio(string fileSpace)
         {
             try
             {
-                using (var audioFile = new AudioFileReader(fileName))
+                using (var audioFile = new AudioFileReader(fileSpace))
                 {
                     using (var outputDevice = new WaveOutEvent())
                     {
@@ -212,17 +313,26 @@ namespace AudioData.DataControllers
             }
         }
 
-        public TimeSpan GetWavFileDuration(string fileName)
+        /// <summary>
+        /// gets the time it takes to play audio
+        /// </summary>
+        /// <param name="fileSpace"></param>
+        /// <returns></returns>
+        public TimeSpan GetWavFileDuration(string fileSpace)
         {
-            using (var writer = new WaveFileReader(fileName))
+            using (var writer = new WaveFileReader(fileSpace))
             {
                 return writer.TotalTime;
             }
         }
 
-        public abstract float[] EncodeDataToAudio(bool[] data, int SampleRate, float noise = 0f);
-
-        public float[] PadArrayWithZeros(float[] original, int paddingAmount)
+        /// <summary>
+        /// Padds the sound with silence on the beginning and end to simulate that the samples are not at the exact right time.
+        /// </summary>
+        /// <param name="original">sound</param>
+        /// <param name="paddingAmount">amount of padding.</param>
+        /// <returns>padded sound</returns>
+        public float[] PadSoundWithSilence(float[] original, int paddingAmount)
         {
             int newSize = original.Length + 2 * paddingAmount;
             float[] paddedArray = new float[newSize];
@@ -238,8 +348,12 @@ namespace AudioData.DataControllers
 
             for (int i = 0; i < soundArray.Length; i++)
             {
-                // Generate noise in the range of -noiseLevel to +noiseLevel
-                float noise = (float)(rand.NextDouble() * 2.0 - 1.0) * noiseLevel;
+                // Generate Gaussian noise using Box-Muller transform
+                double u1 = 1.0 - rand.NextDouble(); // Uniform(0,1] random doubles
+                double u2 = 1.0 - rand.NextDouble();
+                double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2); // Random normal(0,1)
+                float noise = (float)(randStdNormal * noiseLevel);
+
                 soundArray[i] += noise;
 
                 // Ensure that the values stay within the valid range
@@ -249,23 +363,26 @@ namespace AudioData.DataControllers
                     soundArray[i] = -1.0f;
             }
             return soundArray;
-        } // TODO: CHANGE INTO ADDITIVE GUASSIAN NOISE!
-
+        }
 
         /// <returns>the file name.</returns>
-        public string SaveAudioToFile(float[] audioData, string fileName, int SampleRate)
+        public string SaveAudioToFile(float[] audioData, string fileSpace, int sampleRate)
         {
-            using (var writer = new WaveFileWriter(fileName, new WaveFormat(SampleRate, 1)))
+            using (var writer = new WaveFileWriter(fileSpace, new WaveFormat(sampleRate, 1)))
             {
                 writer.WriteSamples(audioData, 0, audioData.Length);
             }
-            return fileName;
+            return fileSpace;
         }
 
-        public double Goertzel(float[] samples, double targetFrequency, int SampleRate)
+        /// <param name="samples">Samples that need to be checked.</param>
+        /// <param name="targetFrequency">the frequency in hz that needs to be detected</param>
+        /// <param name="sampleRate">The Sample rate of the samples</param>
+        /// <returns>The power of the given frequency.</returns>
+        public double Goertzel(float[] samples, double targetFrequency, int sampleRate)
         {
             int N = samples.Length;
-            double k = (int)(0.5 + N * targetFrequency / SampleRate);
+            double k = (int)(0.5 + N * targetFrequency / sampleRate);
             double omega = 2.0 * Math.PI * k / N;
             double sine = Math.Sin(omega);
             double cosine = Math.Cos(omega);
@@ -282,15 +399,19 @@ namespace AudioData.DataControllers
             return Math.Sqrt(q1 * q1 + q2 * q2 - q1 * q2 * coeff);
         }
 
-        public float[] LoadAudioFromFile(string fileName)
+        public float[] LoadAudioFromFile(string fileSpace)
         {
-            using (var reader = new AudioFileReader(fileName))
+            using (var reader = new AudioFileReader(fileSpace))
             {
                 var audioData = new float[reader.Length / sizeof(float)];
                 reader.Read(audioData, 0, audioData.Length);
                 return audioData;
             }
         }
+
+        #endregion
+
+        #region Handshakes
 
         /// <summary>
         /// Removes the handshake that occurs before the transmission. and all bits that occur before it.
@@ -299,8 +420,7 @@ namespace AudioData.DataControllers
         public bool[] RemoveBeforeHandShake(bool[] input)
         {
             var handshake = GenerateStartHandshake();
-            var EncodedHandshake = GenerateStartHandshakeEncoded();
-            int handshakeLength = EncodedHandshake.Length;
+            int handshakeLength = GenerateStartHandshakeEncoded().Length;
             int inputLength = input.Length;
 
             // Iterate through the input array to find the handshake pattern, starting from the end
@@ -355,8 +475,7 @@ namespace AudioData.DataControllers
         public bool[] RemoveAfterHandShake(bool[] input)
         {
             var handshake = GenerateEndHandshake();
-            var EncodedHandshake = GenerateEndHandshakeEncoded();
-            int handshakeLength = EncodedHandshake.Length;
+            int handshakeLength = GenerateEndHandshakeEncoded().Length;
             int inputLength = input.Length;
 
             // Iterate through the input array to find the handshake pattern, starting from the end

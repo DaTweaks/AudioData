@@ -36,14 +36,12 @@ class Program
         switch (input)
         {
             case "FSK":
-                SingleTestString(new FSK(), 6f);
+                UnitTestModulation(new FSK(), 0f, 100, 75);
                 break;
             case "QPSK":
-                SingleTestString(new QPSK(), 5f);
+                UnitTestModulation(new QPSK(), 0f, 100, 75);
                 break;
         }
-
-
     }
 
     #region HammingEncoder
@@ -99,6 +97,9 @@ class Program
 
             var audioData = dataControl.EncodeDataToAudio(binary, SampleRate, startingNoise);
 
+            // Induce a offset error.
+            audioData = audioData.Skip(1000).ToArray();
+
             var editedBinary = dataControl.DecodeAudioToData(audioData, SampleRate);
 
             var dataConvertedData = AESEncryption.DecryptString(dataControl.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
@@ -129,24 +130,24 @@ class Program
         int SampleRate = 192000;
 
         var message = new Message(1000, "YES! WOW!");
+      
+        var binary = controller.StringToBinary(data); // First convert the string into binary.
 
-        var binary = controller.SerializeToBinary(message);
+        binary = MessageEncoder.GroupEncode(binary, 8); // Add hamming code correction to the bits
 
-        binary = MessageEncoder.GroupEncode(binary, 8);
-
-        var audioData = controller.EncodeDataToAudio(binary, SampleRate, noise);
+        var audioData = controller.EncodeDataToAudio(binary, SampleRate, noise); // Encode the bits to audio
 
         var filespace = controller.SaveAudioToFile(audioData, controller.GetName() + "/Audio.wav", SampleRate);
 
         GenerateSpectrogram(filespace, SampleRate, controller.GetName()+ "/Spectrogram.png");
 
-        //controller.PlayAudio(filespace);
+        controller.PlayAudio(filespace);
 
-        var editedBinary = controller.DecodeAudioToData(audioData, SampleRate);
+        var editedBinary = controller.DecodeAudioToData(audioData, SampleRate); // Decode the audio to bits again.
         
         Console.WriteLine("ModulatedBits:   "+ Helpers.BoolArrayToPrettyString(binary));
 
-        var dataConvertedData = controller.DeserializeFromBinary<Message>(MessageEncoder.GroupDecode(editedBinary, 8));
+        var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey); // Decode it from hamming and then decode back into a string.
 
         Console.WriteLine($"Original Message: Name: {message.Name} id: {message.Number}");
         Console.WriteLine($"Demodulated Message: Name: {dataConvertedData.Name} id: {dataConvertedData.Number}");
