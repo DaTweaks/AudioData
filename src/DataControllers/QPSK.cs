@@ -20,6 +20,7 @@
 //
 //  =============================================================================
 
+using FftSharp;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
@@ -82,21 +83,23 @@ namespace AudioData.DataControllers
                 }
             }
 
-            var list = PadArrayWithZeros(audioData, 50000);
+            var list = PadSoundWithSilence(audioData, 50000);
 
             return AddNoise(list, noise);
         }
 
-        public override bool[] DecodeAudioToData(float[] audioData, int SampleRate)
+        protected override bool[] DecodeAudio(float[] audioData, int sampleRate, int offset)
         {
             // Calculate where the bits will be placed.
-            int samplesPerBit = (int)(SampleRate * BitDuration);
+            int samplesPerBit = (int)(sampleRate * BitDuration);
+
+            float[] shifted = audioData.Skip(offset).ToArray();
 
             string decodedStringData = "";
             for (int i = 0; i < audioData.Length; i += samplesPerBit)
             {
                 float[] bitData = audioData.Skip(i).Take(samplesPerBit).ToArray();
-                decodedStringData += DetectFrequency(bitData, SampleRate);
+                decodedStringData += DetectFrequency(bitData, sampleRate);
             }
             //Console.WriteLine("DeModulatedBits: " + decodedStringData);
             return RemoveBeforeHandShake(RemoveAfterHandShake(Helpers.prettyStringToBoolArray(decodedStringData)));

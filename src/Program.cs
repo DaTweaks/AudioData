@@ -34,9 +34,9 @@ class Program
         Console.WriteLine("Do you want to test FSK or QPSK?");
         string input = Console.ReadLine().Trim().ToUpper();
         if(input == "FSK")
-            SingleTest(new FSK(), 1f);
+            UnitTestModulation(new FSK(), 0f, 100, 75);
         else if(input == "QPSK")
-            SingleTest(new QPSK(), 1f);
+            UnitTestModulation(new QPSK(), 0f, 100, 75);
     }
 
     #region HammingEncoder
@@ -126,23 +126,23 @@ class Program
 
         var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
 
-        var binary = controller.StringToBinary(data);
+        var binary = controller.StringToBinary(data); // First convert the string into binary.
 
-        binary = MessageEncoder.GroupEncode(binary, 8);
+        binary = MessageEncoder.GroupEncode(binary, 8); // Add hamming code correction to the bits
 
-        var audioData = controller.EncodeDataToAudio(binary, SampleRate, noise);
+        var audioData = controller.EncodeDataToAudio(binary, SampleRate, noise); // Encode the bits to audio
 
         var filespace = controller.SaveAudioToFile(audioData, controller.GetName() + "/Audio.wav", SampleRate);
 
         GenerateSpectrogram(filespace, SampleRate, controller.GetName()+ "/Spectrogram.png");
 
-        //controller.PlayAudio(filespace);
+        controller.PlayAudio(filespace);
 
-        var editedBinary = controller.DecodeAudioToData(audioData, SampleRate);
+        var editedBinary = controller.DecodeAudioToData(audioData, SampleRate); // Decode the audio to bits again.
         
         Console.WriteLine("ModulatedBits:   "+ Helpers.boolArrayToPrettyString(binary));
 
-        var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+        var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey); // Decode it from hamming and then decode back into a string.
 
         Console.WriteLine("Original Message: "+data);
         Console.WriteLine("Demodulated Message: "+dataConvertedData);
