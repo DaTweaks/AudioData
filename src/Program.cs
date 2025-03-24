@@ -33,6 +33,7 @@ class Program
     {
         Console.WriteLine("Do you want to test FSK or QPSK?");
         string input = Console.ReadLine().Trim().ToUpper();
+
         if(input == "FSK")
             UnitTestModulation(new FSK(), 0f, 100, 75);
         else if(input == "QPSK")
@@ -91,6 +92,9 @@ class Program
             binary = MessageEncoder.GroupEncode(binary, 8);
 
             var audioData = dataControl.EncodeDataToAudio(binary, SampleRate, startingNoise);
+
+            // Induce a offset error.
+            audioData = audioData.Skip(1000).ToArray();
 
             var editedBinary = dataControl.DecodeAudioToData(audioData, SampleRate);
 
