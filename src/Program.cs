@@ -131,7 +131,7 @@ class Program
 
         var message = new Message(1000, "YES! WOW!");
       
-        var binary = controller.StringToBinary(data); // First convert the string into binary.
+        var binary = controller.SerializeToBinary(message); // First convert the string into binary.
 
         binary = MessageEncoder.GroupEncode(binary, 8); // Add hamming code correction to the bits
 
@@ -147,7 +147,7 @@ class Program
         
         Console.WriteLine("ModulatedBits:   "+ Helpers.BoolArrayToPrettyString(binary));
 
-        var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey); // Decode it from hamming and then decode back into a string.
+        var dataConvertedData = controller.DeserializeFromBinary<Message>(MessageEncoder.GroupDecode(editedBinary, 8)); // Decode it from hamming and then decode back into a string.
 
         Console.WriteLine($"Original Message: Name: {message.Name} id: {message.Number}");
         Console.WriteLine($"Demodulated Message: Name: {dataConvertedData.Name} id: {dataConvertedData.Number}");

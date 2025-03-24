@@ -237,26 +237,6 @@ namespace AudioData.DataControllers
                 binary[i] = (b & (1 << i)) != 0;
         }
 
-        public bool[] MakeLengthMultipleOf(bool[] boolArray, int multiple)
-        {
-            int originalLength = boolArray.Length;
-            int newLength = originalLength;
-
-            // Calculate the new length that is a multiple of 8
-            while (newLength % multiple != 0)
-            {
-                newLength--;
-            }
-
-            // Create a new array with the adjusted length
-            bool[] adjustedArray = new bool[newLength];
-
-            // Copy elements from the original array to the adjusted array
-            Array.Copy(boolArray, adjustedArray, newLength);
-
-            return adjustedArray;
-        }
-
         public bool[] SerializeToBinary(object obj)
         {
             return ConvertByteArrayToBinary(JsonSerializer.SerializeToUtf8Bytes(obj)); // Serialize to byte array
@@ -268,19 +248,6 @@ namespace AudioData.DataControllers
         }
 
         #endregion
-
-        public string GetFullName() => GetName() + " - " + GetDescription();
-
-        public abstract string GetName();
-
-        public abstract string GetDescription();
-
-        public bool[] DecodeAudioToData(string fileName, int SampleRate)
-        {
-            return DecodeAudioToData(LoadAudioFromFile(fileName), SampleRate);
-        }
-
-        public abstract bool[] DecodeAudioToData(float[] audioData, int SampleRate);
 
         #region Audio
 
