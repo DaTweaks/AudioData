@@ -102,7 +102,7 @@ namespace AudioData.DataControllers
                 decodedStringData += DetectFrequency(bitData, sampleRate);
             }
             //Console.WriteLine("DeModulatedBits: " + decodedStringData);
-            return RemoveBeforeHandShake(RemoveAfterHandShake(Helpers.prettyStringToBoolArray(decodedStringData)));
+            return RemoveBeforeHandShake(RemoveAfterHandShake(Helpers.PrettyStringToBoolArray(decodedStringData)));
         }
 
         private string DetectFrequency(float[] samples, int SampleRate)

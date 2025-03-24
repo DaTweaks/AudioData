@@ -22,22 +22,26 @@
 
 using AudioData;
 using AudioData.DataControllers;
-using NAudio.Wave;
 using Spectrogram;
-using System.Drawing.Imaging;
-using System.Drawing;
+using System.Text;
 
 class Program
 {
     static void Main(string[] args)
     {
         Console.WriteLine("Do you want to test FSK or QPSK?");
+
         string input = Console.ReadLine().Trim().ToUpper();
 
-        if(input == "FSK")
-            UnitTestModulation(new FSK(), 0f, 100, 75);
-        else if(input == "QPSK")
-            UnitTestModulation(new QPSK(), 0f, 100, 75);
+        switch (input)
+        {
+            case "FSK":
+                UnitTestModulation(new FSK(), 0f, 100, 75);
+                break;
+            case "QPSK":
+                UnitTestModulation(new QPSK(), 0f, 100, 75);
+                break;
+        }
     }
 
     #region HammingEncoder
@@ -47,12 +51,12 @@ class Program
         string input = "10110110"; // NOTE: This only works with multiples of 4 and 8. otherwise it doesnt work.
         Console.WriteLine(input);
 
-        var encoded = MessageEncoder.GroupDecode(Helpers.prettyStringToBoolArray(input), 8);
+        var encoded = MessageEncoder.GroupDecode(Helpers.PrettyStringToBoolArray(input), 8);
 
-        Console.WriteLine(Helpers.boolArrayToPrettyString(encoded));
+        Console.WriteLine(Helpers.BoolArrayToPrettyString(encoded));
         MessageEncoder.MixinRandomError(encoded, 1);
 
-        Console.WriteLine(Helpers.boolArrayToPrettyString(MessageEncoder.GroupDecode(encoded, 8)));
+        Console.WriteLine(Helpers.BoolArrayToPrettyString(MessageEncoder.GroupDecode(encoded, 8)));
     }
 
     #endregion
@@ -67,7 +71,7 @@ class Program
     {
         totalTryCount++;
         int SampleRate = 192000;
-        Thread thread = new Thread(updateTries);
+        Thread thread = new Thread(UpdateTries);
         CreateFolder(dataControl.GetName());
         thread.Start();
         while (totalTries.Count <= totalTryCount)
@@ -83,8 +87,8 @@ class Program
             if (tries.Count >= tryCount)
             {
                 Console.SetCursorPosition(0, 1);
-                Console.Write($"Complete with noise level: {startingNoise} Percent Calculated: {trypercent()}%                ");
-                totalTries.Add(startingNoise, (float)trypercent());
+                Console.Write($"Complete with noise level: {startingNoise} Percent Calculated: {TryPercent()}%                ");
+                totalTries.Add(startingNoise, (float)TryPercent());
                 tries.Clear();
                 startingNoise += 0.1f;
             }
@@ -120,16 +124,13 @@ class Program
 
 
     // For single tests, when you dont want to loop it a 1000 times.
-    public static void SingleTest(DataControl controller, float noise)
+    public static void SingleTestByte(DataControl controller, float noise)
     {
         CreateFolder(controller.GetName());
         int SampleRate = 192000;
-        string encryptionKey = "HemligtLösenord";
 
-        string data = "SINGLE TEST! DOES THIS WORK???";
-
-        var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
-
+        var message = new Message(1000, "YES! WOW!");
+      
         var binary = controller.StringToBinary(data); // First convert the string into binary.
 
         binary = MessageEncoder.GroupEncode(binary, 8); // Add hamming code correction to the bits
@@ -144,29 +145,64 @@ class Program
 
         var editedBinary = controller.DecodeAudioToData(audioData, SampleRate); // Decode the audio to bits again.
         
-        Console.WriteLine("ModulatedBits:   "+ Helpers.boolArrayToPrettyString(binary));
+        Console.WriteLine("ModulatedBits:   "+ Helpers.BoolArrayToPrettyString(binary));
 
         var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey); // Decode it from hamming and then decode back into a string.
 
-        Console.WriteLine("Original Message: "+data);
-        Console.WriteLine("Demodulated Message: "+dataConvertedData);
+        Console.WriteLine($"Original Message: Name: {message.Name} id: {message.Number}");
+        Console.WriteLine($"Demodulated Message: Name: {dataConvertedData.Name} id: {dataConvertedData.Number}");
 
         Console.WriteLine("Duration: "+controller.GetWavFileDuration(filespace));
+
+        tries.Add(dataConvertedData == message);
+    }
+
+    // For single tests, when you dont want to loop it a 1000 times.
+    public static void SingleTestString(DataControl controller, float noise, string data = "SINGLE TEST! DOES THIS WORK???")
+    {
+        CreateFolder(controller.GetName());
+        int SampleRate = 192000;
+        string encryptionKey = "HemligtLösenord";
+
+        var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
+
+        var binary = controller.StringToBinary(encryptedData);
+
+        binary = MessageEncoder.GroupEncode(binary, 8);
+
+        var audioData = controller.EncodeDataToAudio(binary, SampleRate, noise);
+
+        var filespace = controller.SaveAudioToFile(audioData, controller.GetName() + "/Audio.wav", SampleRate);
+
+        GenerateSpectrogram(filespace, SampleRate, controller.GetName()+ "/Spectrogram.png");
+
+        controller.PlayAudio(filespace);
+
+        var editedBinary = controller.DecodeAudioToData(audioData, SampleRate);
+
+        Console.WriteLine("ModulatedBits:   " + Helpers.BoolArrayToPrettyString(binary));
+
+        var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+
+        Console.WriteLine("Original Message: " + data);
+        Console.WriteLine("Demodulated Message: " + dataConvertedData);
+
+        Console.WriteLine("Duration: " + controller.GetWavFileDuration(filespace));
 
         tries.Add(dataConvertedData == data);
     }
 
-    public static void updateTries()
+    public static void UpdateTries()
     {
         while (true)
         {
             Thread.Sleep(10);
             Console.SetCursorPosition(0, 0);
-            Console.Write($"Tried this many times: {tries.Count} succeeded this many times: {GetSuccess()} SuccessPercent: {trypercent()}%                  ");
+            Console.Write($"Tried this many times: {tries.Count} succeeded this many times: {GetSuccess()} SuccessPercent: {TryPercent()}%                  ");
         }
     }
 
-    public static double trypercent()
+    public static double TryPercent()
     {
         int success = GetSuccess();
         if (success != 0 || tries.Count != 0)
@@ -197,7 +233,7 @@ class Program
         Directory.CreateDirectory(path);
     }
 
-    public static void GenerateSpectrogram(string audioFile, int SampleRate, string name) 
+    public static void GenerateSpectrogram(string audioFile, int SampleRate, string name)
     {
         (double[] audio, int sampleRate) = ReadMono(audioFile);
         var sg = new SpectrogramGenerator(sampleRate, fftSize: 4096, stepSize: 250, maxFreq: 10000);
@@ -220,5 +256,16 @@ class Program
         return (audio.ToArray(), sampleRate);
     }
 
+    public class Message
+    {
+        public int Number { get; set; }
+        public string Name { get; set; }
+
+        public Message(int number, string name)
+        {
+            Number = number;
+            Name = name;
+        }
+    }
     #endregion
 }
