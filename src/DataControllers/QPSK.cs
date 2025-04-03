@@ -96,9 +96,9 @@ namespace AudioData.DataControllers
             float[] shifted = audioData.Skip(offset).ToArray();
 
             string decodedStringData = "";
-            for (int i = 0; i < audioData.Length; i += samplesPerBit)
+            for (int i = 0; i < shifted.Length; i += samplesPerBit)
             {
-                float[] bitData = audioData.Skip(i).Take(samplesPerBit).ToArray();
+                float[] bitData = shifted.Skip(i).Take(samplesPerBit).ToArray();
                 decodedStringData += DetectFrequency(bitData, sampleRate);
             }
             //Console.WriteLine("DeModulatedBits: " + decodedStringData);

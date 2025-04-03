@@ -80,9 +80,9 @@ namespace AudioData.DataControllers
             int samplesPerBit = (int)(sampleRate * BitDuration);
 
             List<bool> decodedStringData = new List<bool>();
-            for (int i = 0; i < audioData.Length; i += samplesPerBit)
+            for (int i = 0; i < shifted.Length; i += samplesPerBit)
             {
-                float[] bitData = audioData.Skip(i).Take(samplesPerBit).ToArray();
+                float[] bitData = shifted.Skip(i).Take(samplesPerBit).ToArray();
                 double frequency = DetectFrequency(bitData, sampleRate);
                 decodedStringData.Add(frequency == Frequency0 ? false : true);
             }

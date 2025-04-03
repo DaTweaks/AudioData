@@ -81,16 +81,34 @@ namespace AudioData.DataControllers
         {
             int samplesPerBit = (int)(sampleRate * GetBitDuration(GetBitsPerSecond()));
 
-            bool[] bitdata = new bool[samplesPerBit];
+            List<int> validOffsets = new List<int>();
 
             for (int offset = 0; offset < samplesPerBit; offset++)
             {
-                bitdata = DecodeAudio(audioData, sampleRate, offset);
+                bool[] bitdata = DecodeAudio(audioData, sampleRate, offset);
+
                 if (bitdata.Length != 0)
+                {
+                    validOffsets.Add(offset);
+                }
+                else if (validOffsets.Count > 0)
+                {
+                    // Stop when it loses the signal
                     break;
+                }
             }
 
-            return bitdata;
+            // If no valid offset was found, return empty
+            if (validOffsets.Count == 0)
+            {
+                return new bool[0];
+            }
+
+            // Compute the mean offset
+            int meanOffset = (int)validOffsets.Average();
+
+            // Decode again using the mean offset
+            return DecodeAudio(audioData, sampleRate, meanOffset);
         }
 
         /// <summary>
