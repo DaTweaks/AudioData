@@ -20,34 +20,37 @@
 //
 //  =============================================================================
 
-using FftSharp;
+using AudioData.Encoders.Encoding;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Encoder = AudioData.Encoders.Encoding.Encoder;
 
-namespace AudioData.DataControllers
+namespace AudioData.DataControllers.DartControllers
 {
-    public class QPSK : DataControl
+    public class QPSK : DataController
     {
         const double BPS = 80;
         const double BitDuration = 1.0 / BPS; // seconds
         const double CarrierFrequency = 1500;
 
-        public override int GetBitsPerSecond() => (int)BPS*2; // Account for it being double bits per frequency sent.
+        public override int GetBitsPerSecond() => (int)BPS * 2; // Account for it being double bits per frequency sent.
 
         public override string GetName() => "QPSK";
 
         public override string GetDescription() => "Quadrature Shift Keying";
 
+        public override int GetOptimalDetectionTone() => 6500;
+
         public QPSK()
         {
-            modulators.Add("00", Math.PI / 4);       
-            modulators.Add("01", 3 * Math.PI / 4);   
-            modulators.Add("10", 5 * Math.PI / 4);   
-            modulators.Add("11", 7 * Math.PI / 4);   
+            modulators.Add("00", Math.PI / 4);
+            modulators.Add("01", 3 * Math.PI / 4);
+            modulators.Add("10", 5 * Math.PI / 4);
+            modulators.Add("11", 7 * Math.PI / 4);
         }
 
         private Dictionary<string, double> modulators = new Dictionary<string, double>();
@@ -83,9 +86,12 @@ namespace AudioData.DataControllers
                 }
             }
 
-            var list = PadSoundWithSilence(audioData, 50000);
+            if (noise > 0f)
+            {
+                audioData = AddNoise(audioData, noise);
+            }
 
-            return AddNoise(list, noise);
+            return audioData;
         }
 
         protected override bool[] DecodeAudio(float[] audioData, int sampleRate, int offset)
@@ -101,8 +107,8 @@ namespace AudioData.DataControllers
                 float[] bitData = shifted.Skip(i).Take(samplesPerBit).ToArray();
                 decodedStringData += DetectFrequency(bitData, sampleRate);
             }
-            //Console.WriteLine("DeModulatedBits: " + decodedStringData);
-            return RemoveBeforeHandShake(RemoveAfterHandShake(Helpers.PrettyStringToBoolArray(decodedStringData)));
+
+            return RemoveBeforeHandShake(RemoveAfterHandShake(Encoder.prettyStringToBoolArray(decodedStringData)));
         }
 
         private string DetectFrequency(float[] samples, int SampleRate)
@@ -110,19 +116,16 @@ namespace AudioData.DataControllers
             string bestGuess = "00";
             double power = 0.0;
 
-            //Console.WriteLine("Detecting Frequency!");
-
-            foreach(var kvp in modulators)
+            foreach (var kvp in modulators)
             {
-                var tempPower = Goertzel(samples, kvp.Value*CarrierFrequency, SampleRate);
-                //Console.WriteLine(kvp.Key+" Power: "+tempPower);
+                var tempPower = Goertzel(samples, kvp.Value * CarrierFrequency, SampleRate);
+
                 if (tempPower > power)
                 {
                     bestGuess = kvp.Key;
                     power = tempPower;
                 }
             }
-            //Console.WriteLine(bestGuess+" has won!");
             return bestGuess;
         }
 

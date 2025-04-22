@@ -9,8 +9,11 @@ i'm thinking of also adding ASK and DM in the future aswell.
 * Hamming codes that supports 8 or 4 bits.
 * Converting string into 8 bit arrays.
 * Converting 8 bit arrays into a string.
+* RS Encoding (Credit to: https://github.com/TanukiSharp/ReedSolomon)
 * Handshakes to determine where data starts. (is kinda crucial for doing it cross devices)
 * QPSK and FSK Modulation.
+* Simple AES Crypto
+* TBSK Modulation. (Credit to: https://github.com/nyatla/TBSKmodem)
 
 ## FSK
 The FSK algoritm is really robust.
@@ -47,10 +50,8 @@ When you up the noise. You see this. This is noise level 5. This was a success.
 
 ## TODO
 * Bug fixing QPSK Mod/Demod so it takes a minimum amount of time possible. Currently it takes ages!
-* Fix Noise creator to be additive guassian noise.
 
 ## Notes
-* The higher the sample rate the more "noise" it can withstand.
-* Works across computers, Haven't tested higher BPS than 80 as per now
+* I am not proud of how slow it is, its mostly the offset that makes it be really slow, i should probably look into a solution where the decoders themselves try to check for "high spots" where it is like 99.9999% confident that the bit is correct.
 
 ## Created by David Hornemark, 2025

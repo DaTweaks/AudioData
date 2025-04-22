@@ -22,8 +22,12 @@
 
 using AudioData;
 using AudioData.DataControllers;
+using AudioData.DataControllers.DartControllers;
+using AudioData.Encoders.Crypto;
+using AudioData.Encoders.Encoding;
 using Spectrogram;
 using System.Text;
+using Encoder = AudioData.Encoders.Encoding.Encoder;
 
 class Program
 {
@@ -33,13 +37,21 @@ class Program
 
         string input = Console.ReadLine().Trim().ToUpper();
 
+        IDataControl dataControl;
+
+        Encoder encoding = new HammingEncoder();
+
+        Crypto crypto = new NoCrypto();
+
         switch (input)
         {
             case "FSK":
-                UnitTestModulation(new FSK(), 0f, 100, 75);
+                //UnitTestModulation(new FSK(), encoding, crypto, 0f, 100, 75);
+                SingleTestString(new FSK(), encoding, crypto, 0f);
                 break;
             case "QPSK":
-                UnitTestModulation(new QPSK(), 0f, 100, 75);
+                //UnitTestModulation(new QPSK(), encoding, crypto, 0f, 100, 75);
+                SingleTestString(new QPSK(), encoding, crypto, 0f);
                 break;
         }
     }
@@ -51,12 +63,14 @@ class Program
         string input = "10110110"; // NOTE: This only works with multiples of 4 and 8. otherwise it doesnt work.
         Console.WriteLine(input);
 
-        var encoded = MessageEncoder.GroupDecode(Helpers.PrettyStringToBoolArray(input), 8);
+        var hammingencoder = new HammingEncoder();
 
-        Console.WriteLine(Helpers.BoolArrayToPrettyString(encoded));
-        MessageEncoder.MixinRandomError(encoded, 1);
+        var encoded = hammingencoder.Encode(input);
 
-        Console.WriteLine(Helpers.BoolArrayToPrettyString(MessageEncoder.GroupDecode(encoded, 8)));
+        Console.WriteLine(Encoder.boolArrayToPrettyString(encoded));
+        Encoder.MixinRandomError(encoded, 1);
+
+        Console.WriteLine(Encoder.boolArrayToPrettyString(hammingencoder.Decode(encoded)));
     }
 
     #endregion
@@ -67,7 +81,7 @@ class Program
 
 
     // Mass tests for when i want to test the capabilites of it.
-    public static void UnitTestModulation(DataControl dataControl, float startingNoise, int tryCount, int totalTryCount)
+    public static void UnitTestModulation(IDataControl dataControl, Encoder encoder, Crypto crypto,  float startingNoise, int tryCount, int totalTryCount)
     {
         totalTryCount++;
         int SampleRate = 192000;
@@ -76,13 +90,14 @@ class Program
         thread.Start();
         while (totalTries.Count <= totalTryCount)
         {
-            string encryptionKey = "hemligtLösenord";
+            byte[] encryptionKey = UTF8Encoding.UTF8.GetBytes("HemligtLösenord");
 
             string data = "TESTING TESTING, WHAT IS UP? HOW ARE YOU? YES YES YES";
 
-            var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
+            var encryptedData = crypto.Encrypt(data, encryptionKey);
 
-            var binary = dataControl.StringToBinary(encryptedData);
+
+            var binary = encoder.Encode(encryptedData);
 
             if (tries.Count >= tryCount)
             {
@@ -93,8 +108,6 @@ class Program
                 startingNoise += 0.1f;
             }
 
-            binary = MessageEncoder.GroupEncode(binary, 8);
-
             var audioData = dataControl.EncodeDataToAudio(binary, SampleRate, startingNoise);
 
             // Induce a offset error.
@@ -102,7 +115,7 @@ class Program
 
             var editedBinary = dataControl.DecodeAudioToData(audioData, SampleRate);
 
-            var dataConvertedData = AESEncryption.DecryptString(dataControl.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+            var dataConvertedData = crypto.DecryptString(encoder.DecodeBytes(editedBinary), encryptionKey);
 
             tries.Add(dataConvertedData == data);
         }
@@ -124,70 +137,34 @@ class Program
 
 
     // For single tests, when you dont want to loop it a 1000 times.
-    public static void SingleTestByte(DataControl controller, float noise)
+    public static void SingleTestString(IDataControl controller, Encoder encoder, Crypto crypto, float noise, string data = "SINGLE TEST! DOES THIS WORK???")
     {
         CreateFolder(controller.GetName());
         int SampleRate = 192000;
+        byte[] encryptionKey = UTF8Encoding.UTF8.GetBytes("HemligtLösenord");
 
-        var message = new Message(1000, "YES! WOW!");
-      
-        var binary = controller.SerializeToBinary(message); // First convert the string into binary.
+        var encryptedData = crypto.Encrypt(data, encryptionKey);
 
-        binary = MessageEncoder.GroupEncode(binary, 8); // Add hamming code correction to the bits
-
-        var audioData = controller.EncodeDataToAudio(binary, SampleRate, noise); // Encode the bits to audio
-
-        var filespace = controller.SaveAudioToFile(audioData, controller.GetName() + "/Audio.wav", SampleRate);
-
-        GenerateSpectrogram(filespace, SampleRate, controller.GetName()+ "/Spectrogram.png");
-
-        controller.PlayAudio(filespace);
-
-        var editedBinary = controller.DecodeAudioToData(audioData, SampleRate); // Decode the audio to bits again.
-        
-        Console.WriteLine("ModulatedBits:   "+ Helpers.BoolArrayToPrettyString(binary));
-
-        var dataConvertedData = controller.DeserializeFromBinary<Message>(MessageEncoder.GroupDecode(editedBinary, 8)); // Decode it from hamming and then decode back into a string.
-
-        Console.WriteLine($"Original Message: Name: {message.Name} id: {message.Number}");
-        Console.WriteLine($"Demodulated Message: Name: {dataConvertedData.Name} id: {dataConvertedData.Number}");
-
-        Console.WriteLine("Duration: "+controller.GetWavFileDuration(filespace));
-
-        tries.Add(dataConvertedData == message);
-    }
-
-    // For single tests, when you dont want to loop it a 1000 times.
-    public static void SingleTestString(DataControl controller, float noise, string data = "SINGLE TEST! DOES THIS WORK???")
-    {
-        CreateFolder(controller.GetName());
-        int SampleRate = 192000;
-        string encryptionKey = "HemligtLösenord";
-
-        var encryptedData = AESEncryption.EncryptString(data, encryptionKey);
-
-        var binary = controller.StringToBinary(encryptedData);
-
-        binary = MessageEncoder.GroupEncode(binary, 8);
+        var binary = encoder.Encode(encryptedData);
 
         var audioData = controller.EncodeDataToAudio(binary, SampleRate, noise);
 
-        var filespace = controller.SaveAudioToFile(audioData, controller.GetName() + "/Audio.wav", SampleRate);
+        var filespace = DataController.SaveAudioToFile(audioData, controller.GetName() + "/Audio.wav", SampleRate);
 
         GenerateSpectrogram(filespace, SampleRate, controller.GetName()+ "/Spectrogram.png");
 
-        controller.PlayAudio(filespace);
+        DataController.PlayAudio(filespace, Guid.Empty);
 
         var editedBinary = controller.DecodeAudioToData(audioData, SampleRate);
 
-        Console.WriteLine("ModulatedBits:   " + Helpers.BoolArrayToPrettyString(binary));
+        Console.WriteLine("ModulatedBits:   " + Encoder.boolArrayToPrettyString(binary));
 
-        var dataConvertedData = AESEncryption.DecryptString(controller.BinaryToString(MessageEncoder.GroupDecode(editedBinary, 8)), encryptionKey);
+        var dataConvertedData = crypto.DecryptString(encoder.DecodeBytes(editedBinary), encryptionKey);
 
         Console.WriteLine("Original Message: " + data);
         Console.WriteLine("Demodulated Message: " + dataConvertedData);
 
-        Console.WriteLine("Duration: " + controller.GetWavFileDuration(filespace));
+        Console.WriteLine("Duration: " + DataController.GetWavFileDuration(filespace));
 
         tries.Add(dataConvertedData == data);
     }
