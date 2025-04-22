@@ -1,4 +1,9 @@
 # AudioData C#
+## !NOTES!
+I have rewritten basically everything here in another project where i use this.
+i'm thinking of pushing it here eventually and adding more encoding options, like Reed-Solomon
+i'm thinking of also adding ASK and DM in the future aswell.
+
 ## Features
 * Converting String into Audio.
 * Hamming codes that supports 8 or 4 bits.
